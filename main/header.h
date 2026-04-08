@@ -2,31 +2,31 @@
 #define HEADER_H
 
 // INCLUDES
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
+#include <math.h>
+#include <stdatomic.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdatomic.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
-#include <math.h>
+#include <unistd.h>
 
+#include <esp_check.h>
+#include <esp_err.h>
 #include <esp_log.h>
 #include <esp_system.h>
 #include <esp_timer.h>
-#include <esp_err.h>
-#include <esp_check.h>
 
-#include <hal/spi_types.h>
-#include <driver/spi_master.h>
-#include <driver/spi_common.h>
 #include <driver/gpio.h>
+#include <driver/spi_common.h>
+#include <driver/spi_master.h>
+#include <hal/spi_types.h>
 
 #include <freertos/FreeRTOS.h>
+#include <freertos/ringbuf.h>
 #include <freertos/task.h>
 #include <freertos/timers.h>
-#include <freertos/ringbuf.h>
 
 #include "esp_ads1256.h"
 
@@ -37,17 +37,17 @@
 #define SQUIB_GPIO
 #define MOSI GPIO_NUM_11
 #define MISO GPIO_NUM_13
-#define CLK GPIO_NUM_12
+#define CLK  GPIO_NUM_12
 #define SD_DAT0
 #define SD_DAT1
 #define SD_DAT2
 #define SD_DAT3
 #define SD_CLK
 #define SD_CMD
-#define LOADCELL_CS GPIO_NUM_39
+#define LOADCELL_CS   GPIO_NUM_39
 #define LOADCELL_DRDY GPIO_NUM_21
-#define TRANS_CS GPIO_NUM_21
-#define TRANS_DRDY GPIO_NUM_42
+#define TRANS_CS      GPIO_NUM_21
+#define TRANS_DRDY    GPIO_NUM_42
 #define MAX1_CS
 #define MAX2_CS
 #define MAX3_CS
@@ -58,9 +58,8 @@
 #define LORA_RESET
 
 // ADS1256 CONFIG
-#define ADS_TRANSFER_SIZE 1
 #define ADS_DRDY_TIMEOUT_MS 1
-#define ADS_SAMPLE_RATE_MS 1
+#define ADS_SAMPLE_RATE_MS  1
 
 // SPI CONFIG
 #define SPI_HOST SPI2_HOST
@@ -71,19 +70,18 @@
 #define LORA_RATE_MS
 
 // SD - LITTLEFS CONFIG
-#define SD_BUFFER_SIZE 4096
-#define MAX_SD_FILES 5
-#define SD_UNIT_SIZE 32 * 1024
-#define SD_MOUNT "/sdcard"
+#define SD_BUFFER_SIZE       4096
+#define MAX_SD_FILES         5
+#define SD_UNIT_SIZE         32 * 1024
+#define SD_MOUNT             "/sdcard"
 #define LITTLEFS_BUFFER_SIZE 512
-#define MAX_LFS_FILES 32
+#define MAX_LFS_FILES        32
 
 // STATUS FLAGS
 // ...
 
 // DATA STRUCTURES - SENSORS
-enum SENSOR_BIT
-{
+enum SENSOR_BIT {
     LOADCELL_BIT,
     TRANS_BIT,
     MAX1_BIT,
@@ -91,19 +89,16 @@ enum SENSOR_BIT
     MAX3_BIT,
 };
 
-typedef struct
-{
+typedef struct {
     int32_t raw;
 } ads1256_sample_t;
 
-typedef struct
-{
+typedef struct {
     int16_t temperature;
 } max_sample_t;
 
 // definir nome melhor que ads1, 2 e max1, 2 e 3
-typedef struct
-{
+typedef struct {
     uint32_t timestamp;
 
     ads1256_sample_t loadcell;
@@ -115,11 +110,10 @@ typedef struct
 } data_t;
 
 // DATA STRUCTURES - STORAGE
-typedef struct __attribute__((packed))
-{
+typedef struct __attribute__((packed)) {
     uint32_t timestamp;
-    int32_t thrust;
-    int32_t pressure;
+    int32_t  thrust;
+    int32_t  pressure;
 
     // substituir por locais dos max
     int16_t temperature1;
@@ -127,11 +121,10 @@ typedef struct __attribute__((packed))
     int16_t temperature3;
 } save_t;
 
-typedef struct __attribute__((packed))
-{
+typedef struct __attribute__((packed)) {
     uint32_t timestamp;
-    int32_t thrust;
-    int32_t pressure;
+    int32_t  thrust;
+    int32_t  pressure;
 
     // substituir por locais dos max
     int16_t temperature1;
@@ -140,10 +133,10 @@ typedef struct __attribute__((packed))
 } send_t;
 
 // separar em vários sample_g ??
-extern data_t data_g;
+extern data_t           data_g;
 extern ads1256_sample_t ads1256_sample_g[2];
-extern max_sample_t max6675_sample_g[2];
-extern max_sample_t max31865_sample_g;
+extern max_sample_t     max6675_sample_g[2];
+extern max_sample_t     max31865_sample_g;
 
 // TASK HANDLES
 extern TaskHandle_t xTaskLora;

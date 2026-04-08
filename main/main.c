@@ -2,15 +2,14 @@
 
 static const char *TAG_MAIN = "MAIN";
 
-static void setup_peripherals(void)
-{
+static void setup_peripherals(void) {
     // SPI bus configuration
     spi_bus_config_t spi_bus_config = {
-        .mosi_io_num = MOSI,
-        .miso_io_num = MISO,
-        .sclk_io_num = CLK,
-        .quadwp_io_num = -1,
-        .quadhd_io_num = -1,
+        .mosi_io_num     = MOSI,
+        .miso_io_num     = MISO,
+        .sclk_io_num     = CLK,
+        .quadwp_io_num   = -1,
+        .quadhd_io_num   = -1,
         .max_transfer_sz = SD_BUFFER_SIZE,
     };
 
@@ -24,12 +23,10 @@ static void setup_peripherals(void)
     ESP_ERROR_CHECK(spi_bus_initialize(host, &spi_bus_config, dma_chan));
 }
 
-void app_main(void)
-{
+void app_main(void) {
     ESP_LOGI(TAG_MAIN, "Starting main application");
     setup_peripherals();
     vTaskDelay(pdMS_TO_TICKS(150)); // Wait for peripherals to stabilize
-
 
     /* Create Tasks */
     // Verificar parametros de criação da task
