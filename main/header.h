@@ -18,6 +18,11 @@
 #include <esp_err.h>
 #include <esp_check.h>
 
+#include <hal/spi_types.h>
+#include <driver/spi_master.h>
+#include <driver/spi_common.h>
+#include <driver/gpio.h>
+
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <freertos/timers.h>
@@ -28,9 +33,9 @@
 #define LED_GPIO
 #define IGNITOR_GPIO
 #define SQUIB_GPIO
-#define MOSI
-#define MISO
-#define CLK
+#define MOSI GPIO_NUM_11
+#define MISO GPIO_NUM_13
+#define CLK GPIO_NUM_12
 #define SD_DAT0
 #define SD_DAT1
 #define SD_DAT2
@@ -50,6 +55,10 @@
 #define LORA_BUSY
 #define LORA_RESET
 
+// SPI CONFIG
+#define SPI_HOST SPI2_HOST
+#define DMA_CHAN SPI_DMA_CH_AUTO
+
 // LORA CONFIG
 #define LORA_BAUDRATE 115200
 #define LORA_RATE_MS
@@ -61,6 +70,8 @@
 #define SD_MOUNT "/sdcard"
 #define LITTLEFS_BUFFER_SIZE 512
 #define MAX_LFS_FILES 32
+
+
 
 // STATUS FLAGS
 // ...

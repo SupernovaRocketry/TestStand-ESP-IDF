@@ -1,5 +1,7 @@
 #include "header.h"
 
+spi_device_handle_t spi_bus_handle = NULL;
+
 // TASKS
 TaskHandle_t xTaskAcquire = NULL;
 TaskHandle_t xTaskLora = NULL;
