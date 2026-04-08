@@ -60,6 +60,7 @@
 // ADS1256 CONFIG
 #define ADS_TRANSFER_SIZE 1
 #define ADS_DRDY_TIMEOUT_MS 1
+#define ADS_SAMPLE_RATE_MS 1
 
 // SPI CONFIG
 #define SPI_HOST SPI2_HOST
@@ -154,8 +155,8 @@ extern RingbufHandle_t xLittleFSBuffer;
 
 // MUTEXES
 extern portMUX_TYPE xDATAMutex;
-extern portMUX_TYPE xLOADCELLMutex;
-extern portMUX_TYPE xTRANSMutex;
+extern portMUX_TYPE xADS1Mutex;
+extern portMUX_TYPE xADS2Mutex;
 extern portMUX_TYPE xMAX1Mutex;
 extern portMUX_TYPE xMAX2Mutex;
 extern portMUX_TYPE xMAX3Mutex;

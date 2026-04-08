@@ -23,11 +23,9 @@ static void loadcell_init(ads1256_handle_t *loadcell_handle)
 
     ESP_LOGI(TAG_ADS1, "ADS1 initialized");
     vTaskDelay(pdMS_TO_TICKS(100)); // ?
-
-
 }
 
-static void transducer_init(ads1256_gain_t *trans_handle)
+static void transducer_init(ads1256_handle_t *trans_handle)
 {
     /* Pressure Transducer struct setup */
     ads1256_config_t trans_cfg = {
@@ -46,16 +44,42 @@ static void transducer_init(ads1256_gain_t *trans_handle)
 
     ESP_LOGI(TAG_ADS2, "ADS2 initialized");
     vTaskDelay(pdMS_TO_TICKS(100)); // ?
-
-
 }
 
-void loadcell_task(void *pvParameters)
+void ads_task(void *pvParameters)
 {
     ads1256_handle_t loadcell_handle;
     ads1256_handle_t transducer_handle;
 
-    loadcell_init(loadcell_handle);
-    transducer_init(transducer_handle);
+    loadcell_init(&loadcell_handle);
+    transducer_init(&transducer_handle);
 
+    ads1256_sample_t ads_sample[2];
+
+    while (true)
+    {
+        // Load Cell reading
+        spi_device_acquire_bus(loadcell_handle->spi_handle, portMAX_DELAY);
+        ads1256_read_single(loadcell_handle, &ads_sample[0]);
+        spi_device_release_bus(loadcell_handle->spi_handle);
+
+        // Pressure Transducer reading
+        spi_device_acquire_bus(transducer_handle->spi_handle, portMAX_DELAY);
+        ads1256_read_single(transducer_handle, &ads_sample[1]);
+        spi_device_release_bus(transducer_handle->spi_handle);
+
+        // Adicionar spi_device_acquire_bus na própria leitura ---------------------------------
+
+        // Update global sample
+        portENTER_CRITICAL(&xADS1Mutex);
+        ads1256_sample_g[0] = ads_sample[0];
+        ads1256_sample_g[1] = ads_sample[1];
+        portEXIT_CRITICAL(&xADS1Mutex);
+
+        vTaskDelay(pdMS_TO_TICKS(ADS_SAMPLE_RATE_MS));
+    }
+
+    ESP_ERROR_CHECK(ads1256_delete(loadcell_handle));
+    ESP_ERROR_CHECK(ads1256_delete(transducer_handle));
+    vTaskDelete(NULL);
 }
