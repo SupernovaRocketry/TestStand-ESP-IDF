@@ -28,6 +28,8 @@
 #include <freertos/timers.h>
 #include <freertos/ringbuf.h>
 
+#include "esp_ads1256.h"
+
 // GPIO
 #define BUZZER_GPIO
 #define LED_GPIO
@@ -42,10 +44,10 @@
 #define SD_DAT3
 #define SD_CLK
 #define SD_CMD
-#define LOADCELL_CS
-#define LOADCELL_DRDY
-#define TRANS_CS
-#define TRANS_DRDY
+#define LOADCELL_CS GPIO_NUM_39
+#define LOADCELL_DRDY GPIO_NUM_21
+#define TRANS_CS GPIO_NUM_21
+#define TRANS_DRDY GPIO_NUM_42
 #define MAX1_CS
 #define MAX2_CS
 #define MAX3_CS
@@ -54,6 +56,10 @@
 #define LORA_DI0
 #define LORA_BUSY
 #define LORA_RESET
+
+// ADS1256 CONFIG
+#define ADS_TRANSFER_SIZE 1
+#define ADS_DRDY_TIMEOUT_MS 1
 
 // SPI CONFIG
 #define SPI_HOST SPI2_HOST
@@ -70,8 +76,6 @@
 #define SD_MOUNT "/sdcard"
 #define LITTLEFS_BUFFER_SIZE 512
 #define MAX_LFS_FILES 32
-
-
 
 // STATUS FLAGS
 // ...
@@ -101,8 +105,8 @@ typedef struct
 {
     uint32_t timestamp;
 
-    ads1256_sample_t ads1;
-    ads1256_sample_t ads2;
+    ads1256_sample_t loadcell;
+    ads1256_sample_t trans;
 
     max_sample_t max1;
     max_sample_t max2;
@@ -150,8 +154,8 @@ extern RingbufHandle_t xLittleFSBuffer;
 
 // MUTEXES
 extern portMUX_TYPE xDATAMutex;
-extern portMUX_TYPE xADS1Mutex;
-extern portMUX_TYPE xADS2Mutex;
+extern portMUX_TYPE xLOADCELLMutex;
+extern portMUX_TYPE xTRANSMutex;
 extern portMUX_TYPE xMAX1Mutex;
 extern portMUX_TYPE xMAX2Mutex;
 extern portMUX_TYPE xMAX3Mutex;
@@ -170,4 +174,4 @@ void task_littlefs(void *pvParameters);
 void task_lora(void *pvParameters);
 void task_log(void *pvParameters);
 
-#endif // HEADER_H
+#endif

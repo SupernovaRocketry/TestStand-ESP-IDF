@@ -28,4 +28,6 @@ void app_main(void)
 {
     ESP_LOGI(TAG_MAIN, "Starting main application");
     setup_peripherals();
+    vTaskDelay(pdMS_TO_TICKS(150)); // Wait for peripherals to stabilize
+
 }
