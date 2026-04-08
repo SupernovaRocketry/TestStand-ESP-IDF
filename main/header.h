@@ -46,8 +46,8 @@
 #define SD_CMD
 #define LOADCELL_CS   GPIO_NUM_39
 #define LOADCELL_DRDY GPIO_NUM_21
-#define TRANS_CS      GPIO_NUM_21
-#define TRANS_DRDY    GPIO_NUM_42
+#define TRANS_CS      GPIO_NUM_42
+#define TRANS_DRDY    GPIO_NUM_35
 #define MAX1_CS
 #define MAX2_CS
 #define MAX3_CS
