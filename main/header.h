@@ -58,8 +58,7 @@
 #define LORA_RESET
 
 // ADS1256 CONFIG
-#define ADS_DRDY_TIMEOUT_MS 1
-#define ADS_SAMPLE_RATE_MS  1
+#define ADS_DRDY_TIMEOUT_MS 10
 
 // SPI CONFIG
 #define SPI_HOST SPI2_HOST
@@ -147,12 +146,9 @@ extern RingbufHandle_t xSDBuffer;
 extern RingbufHandle_t xLittleFSBuffer;
 
 // MUTEXES
-extern portMUX_TYPE xDATAMutex;
-extern portMUX_TYPE xADS1Mutex;
-extern portMUX_TYPE xADS2Mutex;
-extern portMUX_TYPE xMAX1Mutex;
-extern portMUX_TYPE xMAX2Mutex;
-extern portMUX_TYPE xMAX3Mutex;
+extern SemaphoreHandle_t xDATAMutex;
+extern SemaphoreHandle_t xADSMutex;
+extern SemaphoreHandle_t xMAXMutex;
 
 // Event group for NVS counter synchronization
 extern EventGroupHandle_t xNVSCounterEvent;

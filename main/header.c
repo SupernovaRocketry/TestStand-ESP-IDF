@@ -11,12 +11,9 @@ RingbufHandle_t xSDBuffer;
 RingbufHandle_t xLittleFSBuffer;
 
 // MUTEXES
-portMUX_TYPE xDATAMutex = portMUX_INITIALIZER_UNLOCKED;
-portMUX_TYPE xADS1Mutex = portMUX_INITIALIZER_UNLOCKED;
-portMUX_TYPE xADS2Mutex = portMUX_INITIALIZER_UNLOCKED;
-portMUX_TYPE xMAX1Mutex = portMUX_INITIALIZER_UNLOCKED;
-portMUX_TYPE xMAX2Mutex = portMUX_INITIALIZER_UNLOCKED;
-portMUX_TYPE xMAX3Mutex = portMUX_INITIALIZER_UNLOCKED;
+SemaphoreHandle_t xDATAMutex = NULL;
+SemaphoreHandle_t xADSMutex  = NULL;
+SemaphoreHandle_t xMAXMutex  = NULL;
 
 // EVENT HANDLE
 EventGroupHandle_t xNVSCounterEvent = NULL;

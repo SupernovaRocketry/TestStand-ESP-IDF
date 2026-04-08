@@ -28,6 +28,11 @@ void app_main(void) {
     setup_peripherals();
     vTaskDelay(pdMS_TO_TICKS(150)); // Wait for peripherals to stabilize
 
+    /* Create Mutexes */
+    xDATAMutex = xSemaphoreCreateMutex();
+    xADSMutex  = xSemaphoreCreateMutex();
+    xMAXMutex  = xSemaphoreCreateMutex();
+
     /* Create Tasks */
     // Verificar parametros de criação da task
     xTaskCreatePinnedToCore(ads_task, "ADS", configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL, 1);
