@@ -11,6 +11,8 @@ static void loadcell_init(ads1256_handle_t *loadcell_handle) {
         .drdy            = LOADCELL_DRDY,
         .gain            = ADS1256_GAIN_1,
         .drate           = ADS1256_DRATE_1000SPS,
+        .pos_channel     = ADS1256_MUX_AIN0,
+        .neg_channel     = ADS1256_MUX_AIN1,
         .drdy_timeout_ms = ADS_DRDY_TIMEOUT_MS,
         .bufen           = false,
     };
@@ -29,6 +31,8 @@ static void transducer_init(ads1256_handle_t *trans_handle) {
         .drdy            = TRANS_DRDY,
         .gain            = ADS1256_GAIN_1,
         .drate           = ADS1256_DRATE_1000SPS,
+        .pos_channel     = ADS1256_MUX_AIN0,
+        .neg_channel     = ADS1256_MUX_AIN1,
         .drdy_timeout_ms = ADS_DRDY_TIMEOUT_MS,
         .bufen           = false,
     };
