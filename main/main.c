@@ -3,7 +3,7 @@
 static const char *TAG_MAIN = "MAIN";
 
 static void setup_memory(void) {
-    data_g = (data_t *)heap_caps_malloc(MAX_DATA * sizeof(data_t), MALLOC_CAP_SPIRAM);
+    data_g = (data_t *)heap_caps_malloc(MAX_SAMPLES * sizeof(data_t), MALLOC_CAP_SPIRAM);
 
     if (data_g == NULL) {
         ESP_LOGE(TAG_MAIN, "Failed to allocate PSRAM for data");
@@ -45,5 +45,6 @@ void app_main(void) {
 
     /* Create Tasks */
     // Verificar parametros de criação da task
-    xTaskCreatePinnedToCore(ads_task, "ADS", configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL, 1);
+    xTaskCreatePinnedToCore(task_acquire, "ACQ", configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL, 0);
+    xTaskCreatePinnedToCore(task_max, "ACQ", configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL, 1);
 }

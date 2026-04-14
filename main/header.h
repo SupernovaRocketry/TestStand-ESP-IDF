@@ -101,50 +101,20 @@ typedef struct {
 
 // definir nome melhor que max1, 2 e 3
 typedef struct __attribute__((packed)) {
-    uint32_t         timestamp; // 4 Bytes
-    ads1256_sample_t loadcell;  // 4 Bytes
-    ads1256_sample_t trans;     // 4 Bytes
-    max_sample_t     max1;      // 2 Bytes
-    max_sample_t     max2;      // 2 Bytes
-    max_sample_t     max3;      // 2 Bytes
-} data_t;                       // 18 Bytes * 10k SPS = 180kB/s -> 1.08MB in total
+    uint32_t timestamp; // 4 Bytes
+    int32_t  loadcell;  // 4 Bytes
+    int32_t  trans;     // 4 Bytes
+    int16_t  max1;      // 2 Bytes
+    int16_t  max2;      // 2 Bytes
+    int16_t  max3;      // 2 Bytes
+} data_t;               // 18 Bytes * 10k SPS = 180kB/s -> 1.08MB in total
 
-// DATA STRUCTURES - STORAGE
-typedef struct __attribute__((packed)) {
-    uint32_t timestamp;
-    int32_t  thrust;
-    int32_t  pressure;
-
-    // substituir por locais dos max
-    int16_t temperature1;
-    int16_t temperature2;
-    int16_t temperature3;
-} save_t;
-
-typedef struct __attribute__((packed)) {
-    uint32_t timestamp;
-    int32_t  thrust;
-    int32_t  pressure;
-
-    // substituir por locais dos max
-    int16_t temperature1;
-    int16_t temperature2;
-    int16_t temperature3;
-} send_t;
-
-// separar em vários sample_g ??
-extern data_t          *data_g;
-extern ads1256_sample_t ads1256_sample_g[2];
-extern max_sample_t     max6675_sample_g[2];
-extern max_sample_t     max31865_sample_g;
-
-// TASK HANDLES
-extern TaskHandle_t xTaskLora;
-extern TaskHandle_t xTaskAcquire;
-
-// RINGBUFFER
-extern RingbufHandle_t xSDBuffer;
-extern RingbufHandle_t xLittleFSBuffer;
+// DATA MANAGEMENT
+extern data_t           *data_g;
+extern volatile uint32_t current_sample;
+extern volatile int16_t  current_temp1;
+extern volatile int16_t  current_temp2;
+extern volatile int16_t  current_temp3;
 
 // MUTEXES
 extern SemaphoreHandle_t xDATAMutex;
@@ -157,9 +127,8 @@ extern EventGroupHandle_t xNVSCounterEvent;
 extern EventGroupHandle_t xFormatEvent;
 
 // TASKS
-void ads_task(void *pvParameters);
-void max_task(void *pvParameters);
 void task_acquire(void *pvParameters);
+void task_max(void *pvParameters);
 void task_sd(void *pvParameters);
 void task_littlefs(void *pvParameters);
 void task_lora(void *pvParameters);
