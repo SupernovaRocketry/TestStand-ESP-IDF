@@ -8,8 +8,6 @@ sys_temp_t sys_temp_g = {0};
 
 // MUTEXES
 SemaphoreHandle_t xDATAMutex = NULL;
-SemaphoreHandle_t xADSMutex  = NULL;
-SemaphoreHandle_t xMAXMutex  = NULL;
 
 // EVENT HANDLE
 EventGroupHandle_t xNVSCounterEvent = NULL;

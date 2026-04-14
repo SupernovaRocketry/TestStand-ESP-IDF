@@ -7,6 +7,7 @@ static void setup_memory(void) {
 
     if (data_g == NULL) {
         ESP_LOGE(TAG_MAIN, "Failed to allocate PSRAM for data");
+        // IMPLEMENTAR ERROR HANDLING -------------------------------
         return;
     }
 }
@@ -40,8 +41,6 @@ void app_main(void) {
 
     /* Create Mutexes */
     xDATAMutex = xSemaphoreCreateMutex();
-    xADSMutex  = xSemaphoreCreateMutex();
-    xMAXMutex  = xSemaphoreCreateMutex();
 
     /* Create Tasks */
     // Verificar parametros de criação da task

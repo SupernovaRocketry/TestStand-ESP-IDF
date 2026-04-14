@@ -3,7 +3,6 @@
 
 // INCLUDES
 #include <math.h>
-#include <stdatomic.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -26,7 +25,6 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/ringbuf.h>
 #include <freertos/task.h>
-#include <freertos/timers.h>
 
 #include "esp_ads1256.h"
 
@@ -77,12 +75,12 @@
 #define MAX_LFS_FILES        32
 
 // MEMORY CONFIG
-#define MAX_SAMPLES 70000
+#define MAX_SAMPLES 7000
 
 // STATUS FLAGS
 #define ARMED     (1 << 0)
 #define FULL_ACQ  (1 << 1)
-#define TEMP_ACQ  (1 << 2)
+#define PART_ACQ  (1 << 2)
 #define SAVE_SD   (1 << 3)
 #define SEND_LORA (1 << 4)
 #define END_TEST  (1 << 5)
@@ -96,14 +94,6 @@ enum SENSOR_BIT {
     MAX3_BIT,
 };
 
-typedef struct {
-    int32_t raw;
-} ads1256_sample_t;
-
-typedef struct {
-    int16_t temperature;
-} max_sample_t;
-
 // definir nome melhor que max1, 2 e 3
 typedef struct __attribute__((packed)) {
     uint32_t timestamp; // 4 Bytes
@@ -113,7 +103,7 @@ typedef struct __attribute__((packed)) {
     int16_t  max2;      // 2 Bytes
     int16_t  max3;      // 2 Bytes
     uint16_t status;    // 2 Bytes
-} data_t;               // 20 Bytes * 10k SPS = 200kB/s -> 1.2MB in total (6 seconds)]
+} data_t;               // 20 Bytes * 1k SPS = 20KB/s -> 120 KB in total (6 seconds)]
 
 typedef struct {
     volatile uint32_t sample; // 4 Bytes
@@ -129,8 +119,6 @@ extern sys_temp_t sys_temp_g;
 
 // MUTEXES
 extern SemaphoreHandle_t xDATAMutex;
-extern SemaphoreHandle_t xADSMutex;
-extern SemaphoreHandle_t xMAXMutex;
 
 // Event group for NVS counter synchronization
 extern EventGroupHandle_t xNVSCounterEvent;
