@@ -80,7 +80,12 @@
 #define MAX_SAMPLES 70000
 
 // STATUS FLAGS
-// ...
+#define ARMED     (1 << 0)
+#define FULL_ACQ  (1 << 1)
+#define TEMP_ACQ  (1 << 2)
+#define SAVE_SD   (1 << 3)
+#define SEND_LORA (1 << 4)
+#define END_TEST  (1 << 5)
 
 // DATA STRUCTURES - SENSORS
 enum SENSOR_BIT {
@@ -107,14 +112,20 @@ typedef struct __attribute__((packed)) {
     int16_t  max1;      // 2 Bytes
     int16_t  max2;      // 2 Bytes
     int16_t  max3;      // 2 Bytes
-} data_t;               // 18 Bytes * 10k SPS = 180kB/s -> 1.08MB in total
+    uint16_t status;    // 2 Bytes
+} data_t;               // 20 Bytes * 10k SPS = 200kB/s -> 1.2MB in total (6 seconds)]
+
+typedef struct {
+    volatile uint32_t sample; // 4 Bytes
+    volatile uint16_t status; // 2 Bytes
+    volatile int16_t  max1;   // 2 Bytes
+    volatile int16_t  max2;   // 2 Bytes
+    volatile int16_t  max3;   // 2 Bytes
+} sys_temp_t;                 // 12 Bytes
 
 // DATA MANAGEMENT
-extern data_t           *data_g;
-extern volatile uint32_t current_sample;
-extern volatile int16_t  current_temp1;
-extern volatile int16_t  current_temp2;
-extern volatile int16_t  current_temp3;
+extern data_t    *data_g;
+extern sys_temp_t sys_temp_g;
 
 // MUTEXES
 extern SemaphoreHandle_t xDATAMutex;

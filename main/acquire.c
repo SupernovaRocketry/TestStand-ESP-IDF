@@ -2,6 +2,8 @@
 
 static const char *TAG_ACQ = "ACQUIRE";
 
+static void status_check(void) {}
+
 static void loadcell_init(ads1256_handle_t *loadcell_handle) {
     /* Load Cell struct setup */
     ads1256_config_t loadcell_cfg = {
@@ -42,6 +44,24 @@ static void transducer_init(ads1256_handle_t *trans_handle) {
     ESP_LOGI(TAG_ACQ, "ADS2 initialized");
 }
 
+void task_max(void *pvParameters) {
+    // MAX INIT
+    // ...
+
+    // LOGICA DE COLETA DOS MAX
+    while (true) {
+
+        if ((sys_temp_g.status && FULL_ACQ) || (sys_temp_g.status && TEMP_ACQ)) {
+            // adiciona max_read_result();
+            sys_temp_g.max1 = 0;
+            sys_temp_g.max2 = 0;
+            sys_temp_g.max3 = 0;
+        }
+        check_status(&sys_temp_g);
+        vTaskDelay(pdMS_TO_TICKS(50));
+    }
+}
+
 void task_acquire(void *pvParameters) {
     ads1256_handle_t loadcell_handle;
     ads1256_handle_t transducer_handle;
@@ -53,27 +73,28 @@ void task_acquire(void *pvParameters) {
     transducer_init(&transducer_handle);
 
     while (true) {
-        ads1256_start_conversion(loadcell_handle);
-        ads1256_start_conversion(transducer_handle);
+        // SAVE DATA TO PSRAM
+        if (sys_temp_g.status |= FULL_ACQ) {
+            ads1256_start_conversion(loadcell_handle);
+            ads1256_start_conversion(transducer_handle);
 
-        // Load Cell + Pressure Transducer reading
-        ads1256_read_result(loadcell_handle, &current_loadcell);
-        ads1256_read_result(transducer_handle, &current_transducer);
+            // Load Cell + Pressure Transducer reading
+            ads1256_read_result(loadcell_handle, &current_loadcell);
+            ads1256_read_result(transducer_handle, &current_transducer);
+        }
 
-        // Data Save
-        data_g[current_sample].timestamp = (uint32_t)esp_timer_get_time();
-        data_g[current_sample].loadcell  = current_loadcell;
-        data_g[current_sample].trans     = current_transducer;
-        data_g[current_sample].max1      = current_temp1;
-        data_g[current_sample].max2      = current_temp2;
-        data_g[current_sample].max3      = current_temp3;
+        data_g[sys_temp_g.sample].loadcell  = current_loadcell;
+        data_g[sys_temp_g.sample].trans     = current_transducer;
+        data_g[sys_temp_g.sample].max1      = sys_temp_g.max1;
+        data_g[sys_temp_g.sample].max2      = sys_temp_g.max2;
+        data_g[sys_temp_g.sample].max3      = sys_temp_g.max3;
+        data_g[sys_temp_g.sample].status    = sys_temp_g.sample;
+        data_g[sys_temp_g.sample].timestamp = (uint32_t)esp_timer_get_time();
 
-        current_sample++;
+        sys_temp_g.sample++; // hmm
     }
 
     ESP_ERROR_CHECK(ads1256_delete(loadcell_handle));
     ESP_ERROR_CHECK(ads1256_delete(transducer_handle));
     vTaskDelete(NULL);
 }
-
-void task_max(void *pvParameters) {}
