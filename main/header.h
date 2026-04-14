@@ -58,7 +58,7 @@
 #define LORA_RESET
 
 // ADS1256 CONFIG
-#define ADS_DRDY_TIMEOUT_MS 10
+#define ADS_DRDY_TIMEOUT_MS 1000
 
 // SPI CONFIG
 #define SPI_HOST SPI2_HOST
@@ -75,6 +75,9 @@
 #define SD_MOUNT             "/sdcard"
 #define LITTLEFS_BUFFER_SIZE 512
 #define MAX_LFS_FILES        32
+
+// MEMORY CONFIG
+#define MAX_SAMPLES 70000
 
 // STATUS FLAGS
 // ...
@@ -96,17 +99,15 @@ typedef struct {
     int16_t temperature;
 } max_sample_t;
 
-// definir nome melhor que ads1, 2 e max1, 2 e 3
-typedef struct {
-    uint32_t timestamp;
-
-    ads1256_sample_t loadcell;
-    ads1256_sample_t trans;
-
-    max_sample_t max1;
-    max_sample_t max2;
-    max_sample_t max3;
-} data_t;
+// definir nome melhor que max1, 2 e 3
+typedef struct __attribute__((packed)) {
+    uint32_t         timestamp; // 4 Bytes
+    ads1256_sample_t loadcell;  // 4 Bytes
+    ads1256_sample_t trans;     // 4 Bytes
+    max_sample_t     max1;      // 2 Bytes
+    max_sample_t     max2;      // 2 Bytes
+    max_sample_t     max3;      // 2 Bytes
+} data_t;                       // 18 Bytes * 10k SPS = 180kB/s -> 1.08MB in total
 
 // DATA STRUCTURES - STORAGE
 typedef struct __attribute__((packed)) {
@@ -132,7 +133,7 @@ typedef struct __attribute__((packed)) {
 } send_t;
 
 // separar em vários sample_g ??
-extern data_t           data_g;
+extern data_t          *data_g;
 extern ads1256_sample_t ads1256_sample_g[2];
 extern max_sample_t     max6675_sample_g[2];
 extern max_sample_t     max31865_sample_g;

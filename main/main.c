@@ -2,6 +2,15 @@
 
 static const char *TAG_MAIN = "MAIN";
 
+static void setup_memory(void) {
+    data_g = (data_t *)heap_caps_malloc(MAX_DATA * sizeof(data_t), MALLOC_CAP_SPIRAM);
+
+    if (data_g == NULL) {
+        ESP_LOGE(TAG_MAIN, "Failed to allocate PSRAM for data");
+        return;
+    }
+}
+
 static void setup_peripherals(void) {
     // SPI bus configuration
     spi_bus_config_t spi_bus_config = {
@@ -25,6 +34,7 @@ static void setup_peripherals(void) {
 
 void app_main(void) {
     ESP_LOGI(TAG_MAIN, "Starting main application");
+    setup_memory();
     setup_peripherals();
     vTaskDelay(pdMS_TO_TICKS(150)); // Wait for peripherals to stabilize
 

@@ -20,7 +20,7 @@ EventGroupHandle_t xNVSCounterEvent = NULL;
 EventGroupHandle_t xFormatEvent     = NULL;
 
 // DATA SETS
-data_t           data_g              = {0};
+data_t          *data_g              = NULL;
 ads1256_sample_t ads1256_sample_g[2] = {0};
 max_sample_t     max6675_sample_g[2] = {0};
 max_sample_t     max31865_sample_g   = {0};
