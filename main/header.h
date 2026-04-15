@@ -29,31 +29,32 @@
 #include "esp_ads1256.h"
 
 // GPIO
-#define BUZZER_GPIO
-#define LED_GPIO
-#define IGNITOR_GPIO
-#define SQUIB_GPIO
-#define MOSI GPIO_NUM_11
-#define MISO GPIO_NUM_13
-#define CLK  GPIO_NUM_12
-#define SD_DAT0
-#define SD_DAT1
-#define SD_DAT2
-#define SD_DAT3
-#define SD_CLK
-#define SD_CMD
-#define LOADCELL_CS   GPIO_NUM_39
+#define BUZZER_GPIO   GPIO_NUM_4
+#define IGNITOR_GPIO  GPIO_NUM_5
+#define SQUIB_GPIO    GPIO_NUM_7
+#define MOSI          GPIO_NUM_11
+#define MISO          GPIO_NUM_13
+#define CLK           GPIO_NUM_12
+#define SD_DAT0       GPIO_NUM_35
+#define SD_DAT1       GPIO_NUM_39
+#define SD_DAT2       GPIO_NUM_37
+#define SD_DAT3       GPIO_NUM_9
+#define SD_CLK        GPIO_NUM_36
+#define SD_CMD        GPIO_NUM_38
+#define LOADCELL_CS   GPIO_NUM_8
 #define LOADCELL_DRDY GPIO_NUM_21
+#define LOADCELL_SYNC GPIO_NUM_48
 #define TRANS_CS      GPIO_NUM_42
 #define TRANS_DRDY    GPIO_NUM_35
-#define MAX1_CS
-#define MAX2_CS
-#define MAX3_CS
-#define MAX3_DRDY
-#define LORA_CS
-#define LORA_DI0
-#define LORA_BUSY
-#define LORA_RESET
+#define TRANS_SYNC    GPIO_NUM_47
+#define MAX1_CS       GPIO_NUM_10
+#define MAX2_CS       GPIO_NUM_17
+#define MAX3_CS       GPIO_NUM_18
+#define MAX3_DRDY     GPIO_NUM_6
+#define LORA_CS       GPIO_NUM_14
+#define LORA_DIO1     GPIO_NUM_11
+#define LORA_BUSY     GPIO_NUM_41
+#define LORA_RESET    GPIO_NUM_40
 
 // ADS1256 CONFIG
 #define ADS_DRDY_TIMEOUT_MS 1000
@@ -81,9 +82,9 @@
 #define ARMED     (1 << 0)
 #define FULL_ACQ  (1 << 1)
 #define PART_ACQ  (1 << 2)
-#define SAVE_SD   (1 << 3)
-#define SEND_LORA (1 << 4)
-#define END_TEST  (1 << 5)
+#define END_TEST  (1 << 3)
+#define SAVE_SD   (1 << 4)
+#define SEND_LORA (1 << 5)
 
 // DATA STRUCTURES - SENSORS
 enum SENSOR_BIT {
@@ -118,12 +119,16 @@ extern data_t    *data_g;
 extern sys_temp_t sys_temp_g;
 
 // MUTEXES
-extern SemaphoreHandle_t xDATAMutex;
+// extern SemaphoreHandle_t xDATAMutex;
+extern portMUX_TYPE xDATASpinlock;
 
 // Event group for NVS counter synchronization
 extern EventGroupHandle_t xNVSCounterEvent;
 // Event group for LittleFS and SD format synchronization
 extern EventGroupHandle_t xFormatEvent;
+
+// TASK HANDLE
+extern TaskHandle_t xTaskAcquire;
 
 // TASKS
 void task_acquire(void *pvParameters);

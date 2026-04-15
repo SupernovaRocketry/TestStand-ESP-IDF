@@ -2,11 +2,23 @@
 
 static const char *TAG_ACQ = "ACQUIRE";
 
+static void IRAM_ATTR drdy_isr_handler(void *arg) {
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    vTaskNotifyGiveFromISR(xTaskAcquire, &xHigherPriorityTaskWoken);
+    if (xHigherPriorityTaskWoken)
+        portYIELD_FROM_ISR();
+}
+
 static void status_check(void) {
 
     // ======================== PARTIAL ACQUISITION ========================
-    if ((sys_temp_g.status & FULL_ACQ) && sys_temp_g.sample >= MAX_SAMPLES) {
+    if ((sys_temp_g.status & FULL_ACQ) && (sys_temp_g.sample >= MAX_SAMPLES)) {
+        // será?
+        portENTER_CRITICAL(&xDATASpinlock);
+        sys_temp_g.status &= ~FULL_ACQ;
         sys_temp_g.status |= PART_ACQ;
+        portEXIT_CRITICAL(&xDATASpinlock);
+
         ESP_LOGE(TAG_ACQ, "Full acquistion stopped. Saving only temperature data.");
         vTaskDelay(pdMS_TO_TICKS(50));
     }
@@ -60,7 +72,7 @@ void task_max(void *pvParameters) {
     while (true) {
         status_check();
 
-        if ((sys_temp_g.status && FULL_ACQ) || (sys_temp_g.status && PART_ACQ)) {
+        if ((sys_temp_g.status & FULL_ACQ) || (sys_temp_g.status & PART_ACQ)) {
             // adiciona max_read_result();
             sys_temp_g.max1 = 0;
             sys_temp_g.max2 = 0;
@@ -81,12 +93,16 @@ void task_acquire(void *pvParameters) {
     loadcell_init(&loadcell_handle);
     transducer_init(&transducer_handle);
 
-    while (true) {
-        status_check();
+    /* ADS DRDY ISR initialization */
+    ESP_ERROR_CHECK(gpio_isr_handler_add(LOADCELL_DRDY, drdy_isr_handler, NULL));
 
+    while (true) {
         if ((sys_temp_g.status & FULL_ACQ) && sys_temp_g.sample < MAX_SAMPLES) {
             ads1256_start_conversion(loadcell_handle);
             ads1256_start_conversion(transducer_handle);
+
+            // Wait DRDY
+            ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
             // Load Cell + Pressure Transducer reading
             ads1256_read_result(loadcell_handle, &current_loadcell);
@@ -98,14 +114,18 @@ void task_acquire(void *pvParameters) {
             data_g[sys_temp_g.sample].max1      = sys_temp_g.max1;
             data_g[sys_temp_g.sample].max2      = sys_temp_g.max2;
             data_g[sys_temp_g.sample].max3      = sys_temp_g.max3;
-            data_g[sys_temp_g.sample].status    = sys_temp_g.status; // is this necessary?
+            data_g[sys_temp_g.sample].status    = sys_temp_g.status;
             data_g[sys_temp_g.sample].timestamp = (uint32_t)esp_timer_get_time();
 
             sys_temp_g.sample++; // hmm
-        }
-
-        if (sys_temp_g.status & PART_ACQ) {
-            // implementar salvamento apenas das temperaturas após o fim do teste
+        } else if (sys_temp_g.status & PART_ACQ) {
+            // implementar salvamento apenas das temperaturas após o fim da queima
+            vTaskDelay(pdMS_TO_TICKS(10));
+        } else if (sys_temp_g.status & END_TEST) {
+            break;
+        } else {
+            // idle
+            vTaskDelay(pdMS_TO_TICKS(10));
         }
     }
 
