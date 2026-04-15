@@ -18,9 +18,12 @@
 #include <esp_timer.h>
 
 #include <driver/gpio.h>
+#include <driver/sdmmc_host.h>
 #include <driver/spi_common.h>
 #include <driver/spi_master.h>
+#include <esp_vfs_fat.h>
 #include <hal/spi_types.h>
+#include <sdmmc_cmd.h>
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/ringbuf.h>

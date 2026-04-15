@@ -109,6 +109,7 @@ void task_acquire(void *pvParameters) {
             ads1256_read_result(transducer_handle, &current_transducer);
 
             // SAVE DATA TO PSRAM
+            // adicionar mutex?
             data_g[sys_temp_g.sample].loadcell  = current_loadcell;
             data_g[sys_temp_g.sample].trans     = current_transducer;
             data_g[sys_temp_g.sample].max1      = sys_temp_g.max1;
