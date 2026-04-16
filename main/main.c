@@ -4,7 +4,7 @@ static const char *TAG_MAIN = "MAIN";
 
 static void setup_memory(void) {
     // sdkconfig -> + Support for external, SPI-connected RAM
-    data_g = (data_t *)heap_caps_malloc(MAX_SAMPLES * sizeof(data_t), MALLOC_CAP_SPIRAM);
+    data_g = (data_t *)heap_caps_malloc(MAX_SAMPLES * sizeof(data_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_DMA);
 
     if (data_g == NULL) {
         ESP_LOGE(TAG_MAIN, "Failed to allocate PSRAM for data");
