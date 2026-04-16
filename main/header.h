@@ -14,6 +14,7 @@
 #include <esp_check.h>
 #include <esp_err.h>
 #include <esp_log.h>
+#include <esp_psram.h>
 #include <esp_system.h>
 #include <esp_timer.h>
 

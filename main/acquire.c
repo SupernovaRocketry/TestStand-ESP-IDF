@@ -118,7 +118,9 @@ void task_acquire(void *pvParameters) {
             data_g[sys_temp_g.sample].status    = sys_temp_g.status;
             data_g[sys_temp_g.sample].timestamp = (uint32_t)esp_timer_get_time();
 
-            sys_temp_g.sample++; // hmm
+            // EDITAR CONFIG DO WATCHDOG =========================================
+
+            sys_temp_g.sample++;
         } else if (sys_temp_g.status & PART_ACQ) {
             // implementar salvamento apenas das temperaturas após o fim da queima
             vTaskDelay(pdMS_TO_TICKS(10));

@@ -3,6 +3,7 @@
 static const char *TAG_MAIN = "MAIN";
 
 static void setup_memory(void) {
+    // sdkconfig -> + Support for external, SPI-connected RAM
     data_g = (data_t *)heap_caps_malloc(MAX_SAMPLES * sizeof(data_t), MALLOC_CAP_SPIRAM);
 
     if (data_g == NULL) {
@@ -50,12 +51,49 @@ static void setup_peripherals(void) {
 
 void app_main(void) {
     ESP_LOGI(TAG_MAIN, "Starting main application");
+
+    // TESTAR
+
+    ESP_LOGI(TAG_MAIN,
+             "Free Heap: %u bytes\n"
+             "  MALLOC_CAP_8BIT      %7zu bytes\n"
+             "  MALLOC_CAP_DMA       %7zu bytes\n"
+             "  MALLOC_CAP_SPIRAM    %7zu bytes\n"
+             "  MALLOC_CAP_INTERNAL  %7zu bytes\n"
+             "  MALLOC_CAP_DEFAULT   %7zu bytes\n"
+             "  MALLOC_CAP_IRAM_8BIT %7zu bytes\n"
+             "  MALLOC_CAP_RETENTION %7zu bytes\n",
+             xPortGetFreeHeapSize(), heap_caps_get_free_size(MALLOC_CAP_8BIT), heap_caps_get_free_size(MALLOC_CAP_DMA),
+             heap_caps_get_free_size(MALLOC_CAP_SPIRAM), heap_caps_get_free_size(MALLOC_CAP_INTERNAL),
+             heap_caps_get_free_size(MALLOC_CAP_DEFAULT), heap_caps_get_free_size(MALLOC_CAP_IRAM_8BIT),
+             heap_caps_get_free_size(MALLOC_CAP_RETENTION));
+
+    // TESTAR
+
     setup_memory();
     setup_peripherals();
     vTaskDelay(pdMS_TO_TICKS(150)); // Wait for peripherals to stabilize
 
     /* Create Mutexes */
     // xDATAMutex = xSemaphoreCreateMutex();
+
+    // TESTAR
+
+    ESP_LOGI(TAG_MAIN,
+             "Free Heap: %u bytes\n"
+             "  MALLOC_CAP_8BIT      %7zu bytes\n"
+             "  MALLOC_CAP_DMA       %7zu bytes\n"
+             "  MALLOC_CAP_SPIRAM    %7zu bytes\n"
+             "  MALLOC_CAP_INTERNAL  %7zu bytes\n"
+             "  MALLOC_CAP_DEFAULT   %7zu bytes\n"
+             "  MALLOC_CAP_IRAM_8BIT %7zu bytes\n"
+             "  MALLOC_CAP_RETENTION %7zu bytes\n",
+             xPortGetFreeHeapSize(), heap_caps_get_free_size(MALLOC_CAP_8BIT), heap_caps_get_free_size(MALLOC_CAP_DMA),
+             heap_caps_get_free_size(MALLOC_CAP_SPIRAM), heap_caps_get_free_size(MALLOC_CAP_INTERNAL),
+             heap_caps_get_free_size(MALLOC_CAP_DEFAULT), heap_caps_get_free_size(MALLOC_CAP_IRAM_8BIT),
+             heap_caps_get_free_size(MALLOC_CAP_RETENTION));
+
+    // TESTAR
 
     /* Create Tasks */
     // Verificar parametros de criação da task
