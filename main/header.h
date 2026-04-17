@@ -80,7 +80,8 @@
 #define MAX_LFS_FILES        32
 
 // MEMORY CONFIG
-#define MAX_SAMPLES 7000
+#define MAX_SAMPLES 700
+#define ADS_SAMPLES 7000
 
 // STATUS FLAGS
 #define ARMED     (1 << 0)
@@ -104,23 +105,25 @@ typedef struct __attribute__((packed)) {
     uint32_t timestamp; // 4 Bytes
     int32_t  loadcell;  // 4 Bytes
     int32_t  trans;     // 4 Bytes
+} ads_data_t;           // 12 Bytes * 1k SPS = 12KB/s -> 72KB in total (6 seconds)
+
+typedef struct __attribute__((packed)) {
+    uint32_t timestamp; // 4 Bytes
     int16_t  max1;      // 2 Bytes
     int16_t  max2;      // 2 Bytes
     int16_t  max3;      // 2 Bytes
-    uint16_t status;    // 2 Bytes
-} data_t;               // 20 Bytes * 1k SPS = 20KB/s -> 120 KB in total (6 seconds)]
+} max_data_t;           // 10 Bytes
 
-typedef struct {
-    volatile uint32_t sample; // 4 Bytes
-    volatile uint16_t status; // 2 Bytes
-    volatile int16_t  max1;   // 2 Bytes
-    volatile int16_t  max2;   // 2 Bytes
-    volatile int16_t  max3;   // 2 Bytes
-} sys_temp_t;                 // 12 Bytes
+typedef struct __attribute__((packed)) {
+    volatile uint32_t ads_sample; // 4 Bytes
+    volatile uint32_t max_sample; // 4 Bytes
+    volatile uint16_t status;     // 2 Bytes
+} sys_data_t;                     // 10 Bytes
 
 // DATA MANAGEMENT
-extern data_t    *data_g;
-extern sys_temp_t sys_temp_g;
+extern ads_data_t *ads_data_g;
+extern max_data_t *max_data_g;
+extern sys_data_t  sys_data_g;
 
 // MUTEXES
 // extern SemaphoreHandle_t xDATAMutex;

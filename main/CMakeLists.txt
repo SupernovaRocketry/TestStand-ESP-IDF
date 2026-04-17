@@ -1,6 +1,7 @@
 idf_component_register(SRCS main.c
-                            acquire.c
+                            sensors/ads.c
+                            sensors/max.c
                             header.c
-                            ignitor.c
+                            ignition.c
                             save_send.c
                         INCLUDE_DIRS ".")

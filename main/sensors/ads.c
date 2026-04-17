@@ -1,6 +1,6 @@
 #include "header.h"
 
-static const char *TAG_ACQ = "ACQUIRE";
+static const char *TAG_ADS = "ADS";
 
 static void IRAM_ATTR drdy_isr_handler(void *arg) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
@@ -12,14 +12,14 @@ static void IRAM_ATTR drdy_isr_handler(void *arg) {
 static void status_check(void) {
 
     // ======================== PARTIAL ACQUISITION ========================
-    if ((sys_temp_g.status & FULL_ACQ) && (sys_temp_g.sample >= MAX_SAMPLES)) {
+    if ((sys_data_g.status & FULL_ACQ) && (sys_data_g.ads_sample >= ADS_SAMPLES)) {
         // será?
         portENTER_CRITICAL(&xDATASpinlock);
-        sys_temp_g.status &= ~FULL_ACQ;
-        sys_temp_g.status |= PART_ACQ;
+        sys_data_g.status &= ~FULL_ACQ;
+        sys_data_g.status |= PART_ACQ;
         portEXIT_CRITICAL(&xDATASpinlock);
 
-        ESP_LOGE(TAG_ACQ, "Full acquistion stopped. Saving only temperature data.");
+        ESP_LOGE(TAG_ADS, "Full acquistion stopped. Saving only temperature data.");
         vTaskDelay(pdMS_TO_TICKS(50));
     }
 }
@@ -41,7 +41,7 @@ static void loadcell_init(ads1256_handle_t *loadcell_handle) {
     /* Load Cell initialization */
     ESP_ERROR_CHECK(ads1256_init(&loadcell_cfg, loadcell_handle));
 
-    ESP_LOGI(TAG_ACQ, "ADS1 initialized");
+    ESP_LOGI(TAG_ADS, "ADS1 initialized");
 }
 
 static void transducer_init(ads1256_handle_t *trans_handle) {
@@ -61,26 +61,7 @@ static void transducer_init(ads1256_handle_t *trans_handle) {
     /* Pressure Transducer initialization */
     ESP_ERROR_CHECK(ads1256_init(&trans_cfg, trans_handle));
 
-    ESP_LOGI(TAG_ACQ, "ADS2 initialized");
-}
-
-void task_max(void *pvParameters) {
-    // MAX INIT
-    // ...
-
-    // LOGICA DE COLETA DOS MAX
-    while (true) {
-        status_check();
-
-        if ((sys_temp_g.status & FULL_ACQ) || (sys_temp_g.status & PART_ACQ)) {
-            // adiciona max_read_result();
-            sys_temp_g.max1 = 0;
-            sys_temp_g.max2 = 0;
-            sys_temp_g.max3 = 0;
-        }
-
-        vTaskDelay(pdMS_TO_TICKS(200));
-    }
+    ESP_LOGI(TAG_ADS, "ADS2 initialized");
 }
 
 void task_acquire(void *pvParameters) {
@@ -97,7 +78,7 @@ void task_acquire(void *pvParameters) {
     ESP_ERROR_CHECK(gpio_isr_handler_add(LOADCELL_DRDY, drdy_isr_handler, NULL));
 
     while (true) {
-        if ((sys_temp_g.status & FULL_ACQ) && sys_temp_g.sample < MAX_SAMPLES) {
+        if ((sys_data_g.status & FULL_ACQ) && sys_data_g.ads_sample < ADS_SAMPLES) {
             ads1256_start_conversion(loadcell_handle);
             ads1256_start_conversion(transducer_handle);
 
@@ -110,21 +91,18 @@ void task_acquire(void *pvParameters) {
 
             // SAVE DATA TO PSRAM
             // adicionar mutex?
-            data_g[sys_temp_g.sample].loadcell  = current_loadcell;
-            data_g[sys_temp_g.sample].trans     = current_transducer;
-            data_g[sys_temp_g.sample].max1      = sys_temp_g.max1;
-            data_g[sys_temp_g.sample].max2      = sys_temp_g.max2;
-            data_g[sys_temp_g.sample].max3      = sys_temp_g.max3;
-            data_g[sys_temp_g.sample].status    = sys_temp_g.status;
-            data_g[sys_temp_g.sample].timestamp = (uint32_t)esp_timer_get_time();
+            ads_data_t sample = {
+                .timestamp = (uint32_t)esp_timer_get_time(),
+                .loadcell  = current_loadcell,
+                .trans     = current_transducer,
+            };
 
-            // EDITAR CONFIG DO WATCHDOG =========================================
-
-            sys_temp_g.sample++;
-        } else if (sys_temp_g.status & PART_ACQ) {
+            memcpy(&ads_data_g[sys_data_g.ads_sample], &sample, sizeof(ads_data_t));
+            sys_data_g.ads_sample++;
+        } else if (sys_data_g.status & PART_ACQ) {
             // implementar salvamento apenas das temperaturas após o fim da queima
             vTaskDelay(pdMS_TO_TICKS(10));
-        } else if (sys_temp_g.status & END_TEST) {
+        } else if (sys_data_g.status & END_TEST) {
             break;
         } else {
             // idle

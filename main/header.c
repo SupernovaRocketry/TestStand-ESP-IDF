@@ -3,8 +3,9 @@
 spi_device_handle_t spi_bus_handle = NULL;
 
 // DATA MANAGEMENT
-data_t    *data_g     = NULL;
-sys_temp_t sys_temp_g = {0};
+ads_data_t *ads_data_g = NULL;
+max_data_t *max_data_g = NULL;
+sys_data_t  sys_data_g = {0};
 
 // MUTEXES
 // SemaphoreHandle_t xDATAMutex = NULL;
