@@ -12,8 +12,9 @@ static void IRAM_ATTR drdy_isr_handler(void *arg) {
 static void status_check(void) {
 
     // ======================== PARTIAL ACQUISITION ========================
+    // TODO: add MAX_DURATION
     if ((sys_data_g.status & FULL_ACQ) && (sys_data_g.ads_sample >= ADS_SAMPLES)) {
-        // será?
+        // TODO: check MUTEX
         portENTER_CRITICAL(&xDATASpinlock);
         sys_data_g.status &= ~FULL_ACQ;
         sys_data_g.status |= PART_ACQ;
@@ -82,30 +83,28 @@ void task_acquire(void *pvParameters) {
             ads1256_start_conversion(loadcell_handle);
             ads1256_start_conversion(transducer_handle);
 
-            // Wait DRDY
+            /* Wait DRDY */
             ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
-            // Load Cell + Pressure Transducer reading
+            /* Load Cell + Pressure Transducer reading */
             ads1256_read_result(loadcell_handle, &current_loadcell);
             ads1256_read_result(transducer_handle, &current_transducer);
 
-            // SAVE DATA TO PSRAM
-            // adicionar mutex?
+            /* Create ads sample */
+            // TODO: add MUTEX
             ads_data_t sample = {
                 .timestamp = (uint32_t)esp_timer_get_time(),
                 .loadcell  = current_loadcell,
                 .trans     = current_transducer,
             };
 
+            /* Copy sample to PSRAM */
             memcpy(&ads_data_g[sys_data_g.ads_sample], &sample, sizeof(ads_data_t));
             sys_data_g.ads_sample++;
-        } else if (sys_data_g.status & PART_ACQ) {
-            // implementar salvamento apenas das temperaturas após o fim da queima
-            vTaskDelay(pdMS_TO_TICKS(10));
-        } else if (sys_data_g.status & END_TEST) {
+        } else if (sys_data_g.status & PART_ACQ || sys_data_g.status & END_TEST) {
             break;
         } else {
-            // idle
+            /* Wait ignition */
             vTaskDelay(pdMS_TO_TICKS(10));
         }
     }
