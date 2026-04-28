@@ -104,6 +104,9 @@ void app_main(void) {
 
     /* Create Tasks */
     // Verificar parametros de criação da task
-    xTaskCreatePinnedToCore(task_acquire, "ACQ", configMINIMAL_STACK_SIZE * 8, NULL, 5, &xTaskAcquire, 0);
-    xTaskCreatePinnedToCore(task_max, "ACQ", configMINIMAL_STACK_SIZE * 8, NULL, 3, NULL, 1);
+    xTaskCreatePinnedToCore(task_ads, "ADS", configMINIMAL_STACK_SIZE * 8, NULL, 10, &xTaskAds, 1);
+    xTaskCreatePinnedToCore(task_max, "MAX", configMINIMAL_STACK_SIZE * 8, NULL, 3, NULL, 0);
+    // task sd
+    // task littlefs
+    // task lora
 }

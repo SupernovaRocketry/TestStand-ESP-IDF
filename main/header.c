@@ -16,4 +16,4 @@ EventGroupHandle_t xNVSCounterEvent = NULL;
 EventGroupHandle_t xFormatEvent     = NULL;
 
 // TASK HANDLE
-TaskHandle_t xTaskAcquire = NULL;
+TaskHandle_t xTaskAds = NULL;

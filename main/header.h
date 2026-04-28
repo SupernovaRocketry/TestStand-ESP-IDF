@@ -135,10 +135,10 @@ extern EventGroupHandle_t xNVSCounterEvent;
 extern EventGroupHandle_t xFormatEvent;
 
 // TASK HANDLE
-extern TaskHandle_t xTaskAcquire;
+extern TaskHandle_t xTaskAds;
 
 // TASKS
-void task_acquire(void *pvParameters);
+void task_ads(void *pvParameters);
 void task_max(void *pvParameters);
 void task_sd(void *pvParameters);
 void task_littlefs(void *pvParameters);
