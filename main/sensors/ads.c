@@ -4,7 +4,7 @@ static const char *TAG_ADS = "ADS";
 
 static void IRAM_ATTR drdy_isr_handler(void *arg) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    vTaskNotifyGiveFromISR(xTaskAcquire, &xHigherPriorityTaskWoken);
+    vTaskNotifyGiveFromISR(xTaskAds, &xHigherPriorityTaskWoken);
     if (xHigherPriorityTaskWoken)
         portYIELD_FROM_ISR();
 }
@@ -65,7 +65,7 @@ static void transducer_init(ads1256_handle_t *trans_handle) {
     ESP_LOGI(TAG_ADS, "ADS2 initialized");
 }
 
-void task_acquire(void *pvParameters) {
+void task_ads(void *pvParameters) {
     ads1256_handle_t loadcell_handle;
     ads1256_handle_t transducer_handle;
 
