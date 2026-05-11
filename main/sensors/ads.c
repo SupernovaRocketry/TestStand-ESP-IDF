@@ -101,7 +101,7 @@ void task_ads(void *pvParameters) {
             /* Copy sample to PSRAM */
             memcpy(&ads_data_g[sys_data_g.ads_sample], &sample, sizeof(ads_data_t));
             sys_data_g.ads_sample++;
-        } else if (sys_data_g.status & PART_ACQ || sys_data_g.status & END_TEST) {
+        } else if (sys_data_g.status & PART_ACQ || sys_data_g.status & END) {
             break;
         } else {
             /* Wait ignition */

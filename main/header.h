@@ -39,24 +39,24 @@
 #define MOSI          GPIO_NUM_11
 #define MISO          GPIO_NUM_13
 #define CLK           GPIO_NUM_12
-#define SD_DAT0       GPIO_NUM_35
-#define SD_DAT1       GPIO_NUM_39
-#define SD_DAT2       GPIO_NUM_37
-#define SD_DAT3       GPIO_NUM_9
+#define SD_DAT0       GPIO_NUM_37
+#define SD_DAT1       GPIO_NUM_35
+#define SD_DAT2       GPIO_NUM_39
+#define SD_DAT3       GPIO_NUM_48
 #define SD_CLK        GPIO_NUM_36
 #define SD_CMD        GPIO_NUM_38
 #define LOADCELL_CS   GPIO_NUM_8
 #define LOADCELL_DRDY GPIO_NUM_21
-#define LOADCELL_SYNC GPIO_NUM_48
+#define LOADCELL_SYNC GPIO_NUM_9
 #define TRANS_CS      GPIO_NUM_42
-#define TRANS_DRDY    GPIO_NUM_35
+#define TRANS_DRDY    GPIO_NUM_10
 #define TRANS_SYNC    GPIO_NUM_47
-#define MAX1_CS       GPIO_NUM_10
+#define MAX1_CS       GPIO_NUM_16
 #define MAX2_CS       GPIO_NUM_17
 #define MAX3_CS       GPIO_NUM_18
 #define MAX3_DRDY     GPIO_NUM_6
 #define LORA_CS       GPIO_NUM_14
-#define LORA_DIO1     GPIO_NUM_11
+#define LORA_DIO1     GPIO_NUM_15
 #define LORA_BUSY     GPIO_NUM_41
 #define LORA_RESET    GPIO_NUM_40
 
@@ -71,7 +71,7 @@
 #define LORA_BAUDRATE 115200
 #define LORA_RATE_MS
 
-// SD / LITTLEFS CONFIG
+// SD & LITTLEFS CONFIG
 #define SD_BUFFER_SIZE       4096
 #define MAX_SD_FILES         5
 #define SD_UNIT_SIZE         32 * 1024
