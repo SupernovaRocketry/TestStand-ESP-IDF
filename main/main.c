@@ -1,4 +1,4 @@
-#include "header.h"
+#include "global.h"
 
 static const char *TAG_MAIN = "MAIN";
 
@@ -62,7 +62,7 @@ void app_main(void) {
     // TESTAR
 
     ESP_LOGI(TAG_MAIN,
-             "Free Heap: %u bytes\n"
+             "[ BEFORE ] - Free Heap: %u bytes\n"
              "  MALLOC_CAP_8BIT      %7zu bytes\n"
              "  MALLOC_CAP_DMA       %7zu bytes\n"
              "  MALLOC_CAP_SPIRAM    %7zu bytes\n"
@@ -87,7 +87,7 @@ void app_main(void) {
     // TESTAR
 
     ESP_LOGI(TAG_MAIN,
-             "Free Heap: %u bytes\n"
+             "[ AFTER ] - Free Heap: %u bytes\n"
              "  MALLOC_CAP_8BIT      %7zu bytes\n"
              "  MALLOC_CAP_DMA       %7zu bytes\n"
              "  MALLOC_CAP_SPIRAM    %7zu bytes\n"

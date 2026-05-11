@@ -1,6 +1,4 @@
-#include "header.h"
-
-spi_device_handle_t spi_bus_handle = NULL;
+#include "global.h"
 
 // DATA MANAGEMENT
 ads_data_t *ads_data_g = NULL;
