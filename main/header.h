@@ -31,6 +31,7 @@
 #include <freertos/task.h>
 
 #include "esp_ads1256.h"
+#include "ra01s.h"
 
 // GPIO
 #define BUZZER_GPIO   GPIO_NUM_4

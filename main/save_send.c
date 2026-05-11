@@ -45,11 +45,19 @@ static void sd_init(void) {
     }
     ESP_LOGI(TAG_SD, "Filesystem mounted");
 
-    // Format mode
-    // add format mode
+    // TODO:
+    //      Format mode
+    //      add format mode
     // ...
 
     sdmmc_card_print_info(stdout, card);
+}
+
+static void lora_init() {
+    esp_err_t ret;
+
+    ESP_LOGI(TAG_LORA, "Initializing LoRa");
+    LoRaInit();
 }
 
 void task_sd(void *pvParameters) {
