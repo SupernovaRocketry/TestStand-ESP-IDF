@@ -1,3 +1,3 @@
 #include "global.h"
 
-static const char *TAG_IGN = "IGNITION";
+static const char *TAG_IGN = "ignition";

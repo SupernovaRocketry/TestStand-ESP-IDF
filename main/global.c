@@ -12,6 +12,7 @@ portMUX_TYPE xDATASpinlock = portMUX_INITIALIZER_UNLOCKED;
 // EVENT HANDLE
 EventGroupHandle_t xNVSCounterEvent = NULL;
 EventGroupHandle_t xFormatEvent     = NULL;
+EventGroupHandle_t xSystemEvent     = NULL;
 
 // TASK HANDLE
 TaskHandle_t xTaskAds = NULL;

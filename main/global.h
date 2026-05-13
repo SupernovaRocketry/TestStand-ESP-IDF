@@ -15,6 +15,8 @@ extern portMUX_TYPE xDATASpinlock;
 extern EventGroupHandle_t xNVSCounterEvent;
 // Event group for LittleFS and SD format synchronization
 extern EventGroupHandle_t xFormatEvent;
+// Event group for Task synchronization
+extern EventGroupHandle_t xSystemEvent;
 
 // TASK HANDLE
 extern TaskHandle_t xTaskAds;

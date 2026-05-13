@@ -84,13 +84,13 @@
 #define ADS_SAMPLES 7000
 
 // STATUS FLAGS
-#define IDLE     (1 << 0)
-#define ARMED    (1 << 1)
-#define FULL_ACQ (1 << 2)
-#define PART_ACQ (1 << 3)
-#define SAVE     (1 << 4)
-#define SEND     (1 << 5)
-#define END      (1 << 6)
+#define IDLE      (1 << 0)
+#define ARMED     (1 << 1)
+#define FULL_ACQ  (1 << 2)
+#define PART_ACQ  (1 << 3)
+#define SAVE_DATA (1 << 4)
+#define SEND_DATA (1 << 5)
+#define END_TEST  (1 << 6)
 
 // SAMPLE STRUCTURES
 typedef struct __attribute__((packed)) {

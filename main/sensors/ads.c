@@ -66,6 +66,8 @@ static void transducer_init(ads1256_handle_t *trans_handle) {
 }
 
 void task_ads(void *pvParameters) {
+    EventBits_t status_bits;
+
     ads1256_handle_t loadcell_handle;
     ads1256_handle_t transducer_handle;
 
@@ -78,35 +80,35 @@ void task_ads(void *pvParameters) {
     /* ADS DRDY ISR initialization */
     ESP_ERROR_CHECK(gpio_isr_handler_add(LOADCELL_DRDY, drdy_isr_handler, NULL));
 
+    /* Wait for acquisition to start */
+    xEventGroupWaitBits(xSystemEvent, FULL_ACQ, pdFALSE, pdTRUE, portMAX_DELAY);
+
     while (true) {
-        if ((sys_data_g.status & FULL_ACQ) && sys_data_g.ads_sample < ADS_SAMPLES) {
-            ads1256_start_conversion(loadcell_handle);
-            ads1256_start_conversion(transducer_handle);
-
-            /* Wait DRDY */
-            ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-
-            /* Load Cell + Pressure Transducer reading */
-            ads1256_read_result(loadcell_handle, &current_loadcell);
-            ads1256_read_result(transducer_handle, &current_transducer);
-
-            /* Create ads sample */
-            // TODO: add MUTEX
-            ads_data_t sample = {
-                .timestamp = (uint32_t)esp_timer_get_time(),
-                .loadcell  = current_loadcell,
-                .trans     = current_transducer,
-            };
-
-            /* Copy sample to PSRAM */
-            memcpy(&ads_data_g[sys_data_g.ads_sample], &sample, sizeof(ads_data_t));
-            sys_data_g.ads_sample++;
-        } else if (sys_data_g.status & PART_ACQ || sys_data_g.status & END) {
+        status_bits = xEventGroupGetBits(xSystemEvent);
+        if (!(status_bits & FULL_ACQ))
             break;
-        } else {
-            /* Wait ignition */
-            vTaskDelay(pdMS_TO_TICKS(10));
-        }
+
+        ads1256_start_conversion(loadcell_handle);
+        ads1256_start_conversion(transducer_handle);
+
+        /* Wait DRDY */
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+        /* Load Cell + Pressure Transducer reading */
+        ads1256_read_result(loadcell_handle, &current_loadcell);
+        ads1256_read_result(transducer_handle, &current_transducer);
+
+        /* Create ads sample */
+        // TODO: add MUTEX
+        ads_data_t sample = {
+            .timestamp = (uint32_t)esp_timer_get_time(),
+            .loadcell  = current_loadcell,
+            .trans     = current_transducer,
+        };
+
+        /* Copy sample to PSRAM */
+        memcpy(&ads_data_g[sys_data_g.ads_sample], &sample, sizeof(ads_data_t));
+        sys_data_g.ads_sample++;
     }
 
     ESP_ERROR_CHECK(ads1256_delete(loadcell_handle));

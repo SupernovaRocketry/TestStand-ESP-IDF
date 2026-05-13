@@ -1,6 +1,6 @@
 #include "global.h"
 
-static const char *TAG_MAIN = "MAIN";
+static const char *TAG_MAIN = "main";
 
 static void setup_memory(void) {
     // sdkconfig -> + Support for external, SPI-connected RAM
@@ -103,10 +103,12 @@ void app_main(void) {
     // TESTAR
 
     /* Create Tasks */
-    // Verificar parametros de criação da task
+    // Verificar parametros de criação das task
     xTaskCreatePinnedToCore(task_ads, "ADS", configMINIMAL_STACK_SIZE * 8, NULL, 10, &xTaskAds, 1);
     xTaskCreatePinnedToCore(task_max, "MAX", configMINIMAL_STACK_SIZE * 8, NULL, 3, NULL, 0);
     // task sd
     // task littlefs
-    // task lora
+    xTaskCreatePinnedToCore(task_lora, "LoRa", configMINIMAL_STACK_SIZE * 8, NULL, 3, NULL, 1);
+
+    xEventGroupSetBits(xSystemEvent, IDLE);
 }

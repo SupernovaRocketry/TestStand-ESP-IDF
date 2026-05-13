@@ -1,8 +1,8 @@
-#include "header.h"
+#include "global.h"
 
 static const char *TAG_SD       = "SD";
-static const char *TAG_LITTLEFS = "LITTLEFS";
-static const char *TAG_LORA     = "LORA";
+static const char *TAG_LITTLEFS = "LittleFS";
+static const char *TAG_LORA     = "LoRa";
 
 static void sd_init(void) {
     esp_err_t     ret;
@@ -64,5 +64,13 @@ void task_sd(void *pvParameters) {
     ESP_LOGI(TAG_SD, "Initializing SD card");
     sd_init();
 
+    xEventGroupWaitBits(xSystemEvent, SAVE_DATA, pdFALSE, pdTRUE, portMAX_DELAY);
+
     // ...
+}
+
+void task_lora() {
+
+    while (true) {
+    }
 }
