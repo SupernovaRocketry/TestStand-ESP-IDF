@@ -53,11 +53,20 @@ static void sd_init(void) {
     sdmmc_card_print_info(stdout, card);
 }
 
-static void lora_init() {
-    esp_err_t ret;
+static void lora_init(sx126x_handle_t *lora_handle) {
+    /* SX1262 LoRa struct setup */
+    sx126x_config_t lora_cfg = {
+        .spi_host = SPI_HOST,
+        .ss       = LORA_CS,
+        .reset    = LORA_RESET,
+        .busy     = LORA_BUSY,
+        .txen     = -1,
+        .rxen     = -1,
+    };
 
-    ESP_LOGI(TAG_LORA, "Initializing LoRa");
-    LoRaInit();
+    /* SX1262 LoRa initialization */
+    ESP_ERROR_CHECK(LoRaInit(&lora_cfg, lora_handle));
+    ESP_LOGI(TAG_LORA, "SX1262 initialized");
 }
 
 void task_sd(void *pvParameters) {
@@ -70,7 +79,16 @@ void task_sd(void *pvParameters) {
 }
 
 void task_lora(void *pvParameters) {
+    EventBits_t status_bits;
+
+    sx126x_handle_t lora_handle;
+
+    lora_init(&lora_handle);
+
+    xEventGroupWaitBits(xSystemEvent, SEND_DATA, pdFALSE, pdTRUE, portMAX_DELAY);
 
     while (true) {
+        // ...
+        // ...
     }
 }
