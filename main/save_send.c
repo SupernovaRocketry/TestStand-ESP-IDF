@@ -19,14 +19,16 @@ static const char *TAG_SD       = "SD";
 static const char *TAG_LITTLEFS = "LittleFS";
 static const char *TAG_LORA     = "LoRa";
 
-static void sd_init(void) {
+void task_sd(void *pvParameters) {
     esp_err_t     ret;
     sdmmc_card_t *card;
 
-    // SDIO host driver (4-bit mode enabled, max frequency set to 20MHz)
+    ESP_LOGI(TAG_SD, "Initializing SD card");
+
+    /* SDIO host driver (4-bit mode enabled, max frequency set to 20MHz) */
     sdmmc_host_t host = SDMMC_HOST_DEFAULT();
 
-    // SDIO slot config
+    /* SDIO slot config */
     sdmmc_slot_config_t sd_cfg = {
         .clk     = SD_CLK,
         .cmd     = SD_CMD,
@@ -40,14 +42,14 @@ static void sd_init(void) {
         .flags   = SDMMC_SLOT_FLAG_INTERNAL_PULLUP,
     };
 
-    // Options for mounting file system
+    /* Options for mounting file system */
     esp_vfs_fat_sdmmc_mount_config_t mount_cfg = {
         .format_if_mount_failed = false,
         .max_files              = MAX_SD_FILES,
         .allocation_unit_size   = SD_UNIT_SIZE,
     };
 
-    // Mount filesystem
+    /* Mount filesystem */
     ESP_LOGI(TAG_SD, "Mounting filesystem");
     ret = esp_vfs_fat_sdmmc_mount(SD_MOUNT, &host, &sd_cfg, &mount_cfg, &card);
     if (ret != ESP_OK) {
@@ -66,43 +68,6 @@ static void sd_init(void) {
     // ...
 
     sdmmc_card_print_info(stdout, card);
-}
-
-static void lora_init(sx126x_handle_t *lora_handle) {
-    /* SX1262 LoRa struct setup */
-    // SETAR VALORES DE CONFIG CORRETOS
-    sx126x_config_t lora_cfg = {
-        .spi_host          = SPI_HOST,
-        .ss                = LORA_CS,
-        .reset             = LORA_RESET,
-        .busy              = LORA_BUSY,
-        .txen              = -1,
-        .rxen              = -1,
-        .frequency         = LORA_FREQUENCY,
-        .tx_power          = 22,
-        .tcxo_voltage      = 0.0f,
-        .use_regulator_ldo = false,
-        .spreading_factor  = LORA_SPREADING_FACTOR,
-        .bandwidth         = LORA_BANDWIDTH,
-        .coding_rate       = LORA_CODING_RATE,
-        .preamble_length   = 8,
-        .payload_len       = 0, // Variable length packet
-        .crc_on            = true,
-        .invert_iq         = false,
-    };
-
-    /* SX1262 LoRa initialization */
-    ESP_ERROR_CHECK(LoRaInit(&lora_cfg, lora_handle));
-    LoRaDebugPrint(*lora_handle, false);
-    ESP_ERROR_CHECK(LoRaBegin(*lora_handle));
-    LoRaConfig(*lora_handle);
-
-    ESP_LOGI(TAG_LORA, "SX1262 initialized");
-}
-
-void task_sd(void *pvParameters) {
-    ESP_LOGI(TAG_SD, "Initializing SD card");
-    sd_init();
 
     xEventGroupWaitBits(xSystemEvent, SAVE_DATA, pdFALSE, pdTRUE, portMAX_DELAY);
 
@@ -117,11 +82,40 @@ void task_sd(void *pvParameters) {
         ESP_LOGE(TAG_SD, "Failed to open file for writing");
         esp_vfs_fat_sdcard_unmount(SD_MOUNT, card);
         ESP_LOGI(TAG_SD, "Card unmounted");
-        spi_bus_free(host.slot);
-        ESP_LOGI(TAG_SD, "SPI bus freed");
         vTaskDelete(NULL);
     }
     // ...
+}
+
+static void lora_init(sx126x_handle_t *lora_handle) {
+    /* SX1262 LoRa struct setup */
+    sx126x_config_t lora_cfg = {
+        .spi_host          = SPI_HOST,
+        .ss                = LORA_CS,
+        .reset             = LORA_RESET,
+        .busy              = LORA_BUSY,
+        .txen              = -1,
+        .rxen              = -1,
+        .frequency         = LORA_FREQUENCY,
+        .tx_power          = 22,
+        .tcxo_voltage      = 0.0f,
+        .use_regulator_ldo = false,
+        .spreading_factor  = LORA_SPREADING_FACTOR,
+        .bandwidth         = LORA_BANDWIDTH,
+        .coding_rate       = LORA_CODING_RATE,
+        .preamble_length   = 12,    // 8 -> SF7-8 || 12 -> SF5-6
+        .payload_len       = 0,     // Variable length packet
+        .crc_on            = true,  // true -> drop garbage
+        .invert_iq         = false, // false -> normal communication
+    };
+
+    /* SX1262 LoRa initialization */
+    ESP_ERROR_CHECK(LoRaInit(&lora_cfg, lora_handle));
+    LoRaDebugPrint(*lora_handle, false);
+    ESP_ERROR_CHECK(LoRaBegin(*lora_handle));
+    LoRaConfig(*lora_handle);
+
+    ESP_LOGI(TAG_LORA, "SX1262 initialized");
 }
 
 void task_lora(void *pvParameters) {
