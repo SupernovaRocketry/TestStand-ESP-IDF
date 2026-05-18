@@ -56,20 +56,20 @@
 #define MAX3_CS       GPIO_NUM_18
 #define MAX3_DRDY     GPIO_NUM_6
 #define LORA_CS       GPIO_NUM_14
-#define LORA_DIO1     GPIO_NUM_15
+#define LORA_DIO1     GPIO_NUM_15 // LORA_DRDY
 #define LORA_BUSY     GPIO_NUM_41
 #define LORA_RESET    GPIO_NUM_40
-
-// ADS1256 CONFIG
-#define ADS_DRDY_TIMEOUT_MS 1000
 
 // SPI CONFIG
 #define SPI_HOST SPI2_HOST
 #define DMA_CHAN SPI_DMA_CH_AUTO
 
-// LORA CONFIG
-#define LORA_BAUDRATE 115200
-#define LORA_RATE_MS
+// MEMORY CONFIG
+#define MAX_SAMPLES 700
+#define ADS_SAMPLES 7000
+
+// ADS1256 CONFIG
+#define ADS_DRDY_TIMEOUT_MS 1000
 
 // SD & LITTLEFS CONFIG
 #define SD_BUFFER_SIZE       4096
@@ -78,10 +78,6 @@
 #define SD_MOUNT             "/sdcard"
 #define LITTLEFS_BUFFER_SIZE 512
 #define MAX_LFS_FILES        32
-
-// MEMORY CONFIG
-#define MAX_SAMPLES 700
-#define ADS_SAMPLES 7000
 
 // STATUS FLAGS
 #define IDLE      (1 << 0)

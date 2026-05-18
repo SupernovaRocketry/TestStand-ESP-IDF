@@ -1,5 +1,10 @@
 #include "global.h"
 
+#define LORA_FREQUENCY        915000000 // Hz
+#define LORA_SPREADING_FACTOR 7
+#define LORA_BANDWIDTH        SX126X_LORA_BW_125_0
+#define LORA_CODING_RATE      SX126X_LORA_CR_4_5
+
 static const char *TAG_SD       = "SD";
 static const char *TAG_LITTLEFS = "LittleFS";
 static const char *TAG_LORA     = "LoRa";
@@ -55,17 +60,33 @@ static void sd_init(void) {
 
 static void lora_init(sx126x_handle_t *lora_handle) {
     /* SX1262 LoRa struct setup */
+    // SETAR VALORES DE CONFIG CORRETOS
     sx126x_config_t lora_cfg = {
-        .spi_host = SPI_HOST,
-        .ss       = LORA_CS,
-        .reset    = LORA_RESET,
-        .busy     = LORA_BUSY,
-        .txen     = -1,
-        .rxen     = -1,
+        .spi_host          = SPI_HOST,
+        .ss                = LORA_CS,
+        .reset             = LORA_RESET,
+        .busy              = LORA_BUSY,
+        .txen              = -1,
+        .rxen              = -1,
+        .frequency         = LORA_FREQUENCY,
+        .tx_power          = 22,
+        .tcxo_voltage      = 0.0f,
+        .use_regulator_ldo = false,
+        .spreading_factor  = LORA_SPREADING_FACTOR,
+        .bandwidth         = LORA_BANDWIDTH,
+        .coding_rate       = LORA_CODING_RATE,
+        .preamble_length   = 8,
+        .payload_len       = 0, // Variable length packet
+        .crc_on            = true,
+        .invert_iq         = false,
     };
 
     /* SX1262 LoRa initialization */
     ESP_ERROR_CHECK(LoRaInit(&lora_cfg, lora_handle));
+    LoRaDebugPrint(*lora_handle, false);
+    ESP_ERROR_CHECK(LoRaBegin(*lora_handle));
+    LoRaConfig(*lora_handle);
+
     ESP_LOGI(TAG_LORA, "SX1262 initialized");
 }
 
@@ -79,16 +100,34 @@ void task_sd(void *pvParameters) {
 }
 
 void task_lora(void *pvParameters) {
-    EventBits_t status_bits;
-
     sx126x_handle_t lora_handle;
+    bool            err;
+    uint16_t        lost;
 
     lora_init(&lora_handle);
 
+    // ADICIONAR ISR
+    // ADICIONAR BATCH PACKET
+
     xEventGroupWaitBits(xSystemEvent, SEND_DATA, pdFALSE, pdTRUE, portMAX_DELAY);
 
-    while (true) {
-        // ...
-        // ...
+    for (uint32_t i = 0; i < sys_data_g.ads_sample; i++) {
+        err = LoRaSend(lora_handle, (uint8_t *)&ads_data_g[i], sizeof(ads_data_t), SX126x_TXMODE_SYNC);
+        if (err)
+            ESP_LOGI(TAG_LORA, "Sample %lu lost.", i);
     }
+
+    lost = GetPacketLost(lora_handle);
+    ESP_LOGI(TAG_LORA, "Samples lost: %u", lost);
+
+    for (uint32_t i = 0; i < sys_data_g.max_sample; i++) {
+        err = LoRaSend(lora_handle, (uint8_t *)&max_data_g[i], sizeof(max_data_t), SX126x_TXMODE_SYNC);
+        if (err)
+            ESP_LOGI(TAG_LORA, "Sample %lu lost.", i);
+    }
+
+    lost = GetPacketLost(lora_handle);
+    ESP_LOGI(TAG_LORA, "Samples lost: %u", lost);
+
+    vTaskDelete(NULL);
 }

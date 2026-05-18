@@ -117,8 +117,13 @@ uint8_t spi_transfer(sx126x_handle_t handle, uint8_t address) {
     return datain[0];
 }
 
-int16_t LoRaBegin(sx126x_handle_t handle, uint32_t frequencyInHz, int8_t txPowerInDbm, float tcxoVoltage,
-                  bool useRegulatorLDO) {
+int16_t LoRaBegin(sx126x_handle_t handle) {
+
+    uint32_t frequencyInHz   = handle->dev_config.frequency;
+    int8_t   txPowerInDbm    = handle->dev_config.tx_power;
+    float    tcxoVoltage     = handle->dev_config.tcxo_voltage;
+    bool     useRegulatorLDO = handle->dev_config.use_regulator_ldo;
+
     if (txPowerInDbm > 22)
         txPowerInDbm = 22;
     if (txPowerInDbm < -3)
@@ -197,8 +202,15 @@ void FixInvertedIQ(sx126x_handle_t handle, uint8_t iqConfig) {
     WriteRegister(handle, SX126X_REG_IQ_POLARITY_SETUP, &iqConfigCurrent, 1); // 0x0736
 }
 
-void LoRaConfig(sx126x_handle_t handle, uint8_t spreadingFactor, uint8_t bandwidth, uint8_t codingRate,
-                uint16_t preambleLength, uint8_t payloadLen, bool crcOn, bool invertIrq) {
+void LoRaConfig(sx126x_handle_t handle) {
+    uint8_t  spreadingFactor = handle->dev_config.spreading_factor;
+    uint8_t  bandwidth       = handle->dev_config.bandwidth;
+    uint8_t  codingRate      = handle->dev_config.coding_rate;
+    uint16_t preambleLength  = handle->dev_config.preamble_length;
+    uint8_t  payloadLen      = handle->dev_config.preamble_length;
+    bool     crcOn           = handle->dev_config.crc_on;
+    bool     invertIrq       = handle->dev_config.invert_iq;
+
     SetStopRxTimerOnPreambleDetect(handle, false);
     SetLoRaSymbNumTimeout(handle, 0);
     SetPacketType(handle, SX126X_PACKET_TYPE_LORA); // SX126x.ModulationParams.PacketType : MODEM_LORA
