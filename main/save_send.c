@@ -1,7 +1,17 @@
 #include "global.h"
 
+// SD & LITTLEFS CONFIG
+#define SD_BUFFER_SIZE       4096
+#define MAX_SD_FILES         5
+#define SD_UNIT_SIZE         32 * 1024
+#define SD_MOUNT             "/sdcard"
+#define LITTLEFS_BUFFER_SIZE 512
+#define MAX_LFS_FILES        32
+#define FILENAME_LENGTH      32
+
+// LORA CONFIG
 #define LORA_FREQUENCY        915000000 // Hz
-#define LORA_SPREADING_FACTOR 7
+#define LORA_SPREADING_FACTOR 5
 #define LORA_BANDWIDTH        SX126X_LORA_BW_125_0
 #define LORA_CODING_RATE      SX126X_LORA_CR_4_5
 
@@ -96,6 +106,21 @@ void task_sd(void *pvParameters) {
 
     xEventGroupWaitBits(xSystemEvent, SAVE_DATA, pdFALSE, pdTRUE, portMAX_DELAY);
 
+    /* Create log file */
+    // ADICIONAR NVS COUNTER
+    char log_name[FILENAME_LENGTH];
+    snprintf(log_name, FILENAME_LENGTH, "%s/test%ld.bin", SD_MOUNT, 12345);
+    ESP_LOGI(TAG_SD, "Creating file %s", log_name);
+
+    FILE *f = fopen(log_name, "wb");
+    if (!f) {
+        ESP_LOGE(TAG_SD, "Failed to open file for writing");
+        esp_vfs_fat_sdcard_unmount(SD_MOUNT, card);
+        ESP_LOGI(TAG_SD, "Card unmounted");
+        spi_bus_free(host.slot);
+        ESP_LOGI(TAG_SD, "SPI bus freed");
+        vTaskDelete(NULL);
+    }
     // ...
 }
 

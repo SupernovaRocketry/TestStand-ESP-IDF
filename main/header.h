@@ -71,14 +71,6 @@
 // ADS1256 CONFIG
 #define ADS_DRDY_TIMEOUT_MS 1000
 
-// SD & LITTLEFS CONFIG
-#define SD_BUFFER_SIZE       4096
-#define MAX_SD_FILES         5
-#define SD_UNIT_SIZE         32 * 1024
-#define SD_MOUNT             "/sdcard"
-#define LITTLEFS_BUFFER_SIZE 512
-#define MAX_LFS_FILES        32
-
 // STATUS FLAGS
 #define IDLE      (1 << 0)
 #define ARMED     (1 << 1)
