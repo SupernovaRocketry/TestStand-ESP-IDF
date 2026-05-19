@@ -115,5 +115,4 @@ typedef enum {
     EVT_MAX_DONE,  // task_max finished
     EVT_SAVE_DONE, // task_sd finished writing
     EVT_SEND_DONE, // task_lora finished sending
-    EVT_ERROR,     // any task encountered a fatal error
 } sys_event_t;

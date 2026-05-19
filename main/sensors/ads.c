@@ -1,5 +1,7 @@
 #include "global.h"
 
+#define FULL_ACQ_DURATION_MS 7000
+
 static const char *TAG_ADS = "ADS";
 
 static void IRAM_ATTR drdy_isr_handler(void *arg) {
@@ -9,20 +11,21 @@ static void IRAM_ATTR drdy_isr_handler(void *arg) {
         portYIELD_FROM_ISR();
 }
 
-static void status_check(void) {
+static bool status_check(int64_t acq_start) {
+    bool buffer_full  = sys_data_g.ads_sample >= ADS_SAMPLES;
+    bool time_elapsed = (esp_timer_get_time() - acq_start) >= (FULL_ACQ_DURATION_MS * 1000);
 
-    // ======================== PARTIAL ACQUISITION ========================
-    // TODO: add MAX_DURATION
-    if ((sys_data_g.status & FULL_ACQ) && (sys_data_g.ads_sample >= ADS_SAMPLES)) {
-        // TODO: check MUTEX
-        portENTER_CRITICAL(&xDATASpinlock);
-        sys_data_g.status &= ~FULL_ACQ;
-        sys_data_g.status |= PART_ACQ;
-        portEXIT_CRITICAL(&xDATASpinlock);
+    if ((xEventGroupGetBits(xSystemEvent) & FULL_ACQ)) {
+        if (buffer_full || time_elapsed) {
+            sys_event_t evt = EVT_ADS_DONE;
+            xQueueSend(xEventQueue, &evt, portMAX_DELAY);
+            ESP_LOGI(TAG_ADS, "Full acquisition stopped: %s", buffer_full ? "buffer full" : "time elapsed");
 
-        ESP_LOGE(TAG_ADS, "Full acquistion stopped. Saving only temperature data.");
-        vTaskDelay(pdMS_TO_TICKS(50));
+            return true;
+        }
     }
+
+    return false;
 }
 
 static void loadcell_init(ads1256_handle_t *loadcell_handle) {
@@ -66,8 +69,6 @@ static void transducer_init(ads1256_handle_t *trans_handle) {
 }
 
 void task_ads(void *pvParameters) {
-    EventBits_t status_bits;
-
     ads1256_handle_t loadcell_handle;
     ads1256_handle_t transducer_handle;
 
@@ -83,11 +84,9 @@ void task_ads(void *pvParameters) {
     /* Wait for acquisition to start */
     xEventGroupWaitBits(xSystemEvent, FULL_ACQ, pdFALSE, pdTRUE, portMAX_DELAY);
 
-    while (true) {
-        status_bits = xEventGroupGetBits(xSystemEvent);
-        if (!(status_bits & FULL_ACQ))
-            break;
+    int64_t acq_start = esp_timer_get_time();
 
+    while (true) {
         ads1256_start_conversion(loadcell_handle);
         ads1256_start_conversion(transducer_handle);
 
@@ -99,7 +98,6 @@ void task_ads(void *pvParameters) {
         ads1256_read_result(transducer_handle, &current_transducer);
 
         /* Create ads sample */
-        // TODO: add MUTEX
         ads_data_t sample = {
             .timestamp = (uint32_t)esp_timer_get_time(),
             .loadcell  = current_loadcell,
@@ -109,6 +107,9 @@ void task_ads(void *pvParameters) {
         /* Copy sample to PSRAM */
         memcpy(&ads_data_g[sys_data_g.ads_sample], &sample, sizeof(ads_data_t));
         sys_data_g.ads_sample++;
+
+        if (status_check(acq_start))
+            break;
     }
 
     ESP_ERROR_CHECK(ads1256_delete(loadcell_handle));

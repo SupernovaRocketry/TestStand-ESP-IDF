@@ -81,7 +81,7 @@ void task_sd(void *pvParameters) {
     /* Create log file */
     // ADICIONAR NVS COUNTER
     char log_name[FILENAME_LENGTH];
-    snprintf(log_name, FILENAME_LENGTH, "%s/test%ld.bin", SD_MOUNT, 12345);
+    snprintf(log_name, FILENAME_LENGTH, "%s/test%d.bin", SD_MOUNT, 12345);
 
     FILE *f = fopen(log_name, "wb");
     if (!f) {
@@ -155,7 +155,10 @@ cleanup:
 unmount:
     esp_vfs_fat_sdcard_unmount(SD_MOUNT, card);
     ESP_LOGI(TAG_SD, "Card unmounted");
-    xEventGroupSetBits(xSystemEvent, SEND_DATA);
+
+    sys_event_t evt = EVT_SAVE_DONE;
+    xQueueSend(xEventQueue, &evt, portMAX_DELAY);
+
     vTaskDelete(NULL);
 }
 
@@ -222,7 +225,8 @@ void task_lora(void *pvParameters) {
 
     ESP_LOGI(TAG_LORA, "SEND_DATA complete");
 
-    xEventGroupSetBits(xSystemEvent, END_TEST);
+    sys_event_t evt = EVT_SEND_DONE;
+    xQueueSend(xEventQueue, &evt, portMAX_DELAY);
 
     vTaskDelete(NULL);
 }
