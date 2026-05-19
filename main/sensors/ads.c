@@ -114,5 +114,9 @@ void task_ads(void *pvParameters) {
 
     ESP_ERROR_CHECK(ads1256_delete(loadcell_handle));
     ESP_ERROR_CHECK(ads1256_delete(transducer_handle));
+
+    gpio_intr_disable(LOADCELL_DRDY);
+    gpio_isr_handler_remove(LOADCELL_DRDY);
+
     vTaskDelete(NULL);
 }

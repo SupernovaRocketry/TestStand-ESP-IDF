@@ -24,6 +24,7 @@ extern EventGroupHandle_t xSystemEvent;
 
 // TASK HANDLE
 extern TaskHandle_t xTaskAds;
+extern TaskHandle_t xTaskLora;
 
 // TASKS
 void task_ads(void *pvParameters);

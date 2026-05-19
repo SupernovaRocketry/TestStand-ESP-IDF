@@ -50,8 +50,18 @@ static void setup_peripherals(void) {
         .intr_type    = GPIO_INTR_NEGEDGE // Trigger when DRDY goes LOW
     };
 
-    // Apply DDRY config
+    // DIO1 config with ISR
+    gpio_config_t dio1_conf = {
+        .pin_bit_mask = (1ULL << LORA_DIO1),
+        .mode         = GPIO_MODE_INPUT,
+        .pull_up_en   = GPIO_PULLUP_ENABLE,
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .intr_type    = GPIO_INTR_POSEDGE // Trigger when DIO1 goes HIGH
+    };
+
+    // Apply config
     ESP_ERROR_CHECK(gpio_config(&drdy_conf));
+    ESP_ERROR_CHECK(gpio_config(&dio1_conf));
 
     // Start ISR
     gpio_install_isr_service(ESP_INTR_FLAG_IRAM);
@@ -162,7 +172,7 @@ void app_main(void) {
     xTaskCreatePinnedToCore(task_max, "MAX", configMINIMAL_STACK_SIZE * 8, NULL, 3, NULL, 0);
     xTaskCreatePinnedToCore(task_sd, "SD", configMINIMAL_STACK_SIZE * 8, NULL, 3, NULL, 1);
     // task littlefs
-    xTaskCreatePinnedToCore(task_lora, "LoRa", configMINIMAL_STACK_SIZE * 8, NULL, 3, NULL, 1);
+    xTaskCreatePinnedToCore(task_lora, "LoRa", configMINIMAL_STACK_SIZE * 8, NULL, 3, &xTaskLora, 1);
 
     xEventGroupSetBits(xSystemEvent, IDLE);
 }
