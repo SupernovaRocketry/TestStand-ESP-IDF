@@ -1,8 +1,18 @@
-#include "header.h"
+#include "global.h"
 
-static const char *TAG_MAX1 = "MAX6675_1";
-static const char *TAG_MAX2 = "MAX6675_2";
-static const char *TAG_MAX3 = "MAX31865";
+static const char *TAG_MAX = "MAX";
 
-// definir nomes melhors que MAX1, MAX2 e MAX3
+void task_max(void *pvParameters) {
+    // MAX INIT
+    // ...
 
+    // LOGICA DE COLETA DOS MAX
+    while (true) {
+
+        if ((sys_data_g.status & FULL_ACQ) || (sys_data_g.status & PART_ACQ)) {
+            // adiciona max_read_result();
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(200));
+    }
+}
