@@ -29,7 +29,7 @@ static void setup_peripherals(void) {
         .sclk_io_num     = CLK,
         .quadwp_io_num   = -1,
         .quadhd_io_num   = -1,
-        .max_transfer_sz = 4096,
+        .max_transfer_sz = 32 * 1024,
     };
 
     // SPI host setup
