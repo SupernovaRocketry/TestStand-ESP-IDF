@@ -1,6 +1,7 @@
 #include "global.h"
 
 static const char *TAG_MAIN = "main";
+static const char *TAG_SYS  = "system";
 
 static void setup_memory(void) {
     // sdkconfig -> + Support for external, SPI-connected RAM
@@ -56,6 +57,54 @@ static void setup_peripherals(void) {
     gpio_install_isr_service(ESP_INTR_FLAG_IRAM);
 }
 
+void task_state(void *pvParameters) {
+    sys_event_t evt;
+    while (true) {
+        if (xQueueReceive(xEventQueue, &evt, portMAX_DELAY) != pdTRUE)
+            continue;
+    }
+
+    switch (evt) {
+
+    case EVT_ARM:
+        ESP_LOGI(TAG_SYS, "IDLE -> ARMED");
+        xEventGroupClearBits(xSystemEvent, IDLE);
+        xEventGroupSetBits(xSystemEvent, ARMED);
+        break;
+
+    case EVT_IGNITION:
+        ESP_LOGI(TAG_SYS, "ARMED -> FULL_ACQ");
+        xEventGroupClearBits(xSystemEvent, ARMED);
+        xEventGroupSetBits(xSystemEvent, FULL_ACQ);
+        break;
+
+    case EVT_ADS_DONE:
+        ESP_LOGI(TAG_SYS, "FULL_ACQ -> PART_ACQ");
+        xEventGroupClearBits(xSystemEvent, FULL_ACQ);
+        xEventGroupSetBits(xSystemEvent, PART_ACQ);
+        break;
+
+    case EVT_MAX_DONE:
+        ESP_LOGI(TAG_SYS, "PART_ACQ -> SAVE_DATA");
+        xEventGroupClearBits(xSystemEvent, PART_ACQ);
+        xEventGroupSetBits(xSystemEvent, SAVE_DATA);
+        break;
+
+    case EVT_SAVE_DONE:
+        ESP_LOGI(TAG_SYS, "SAVE_DATA -> SEND_DATA");
+        xEventGroupClearBits(xSystemEvent, SAVE_DATA);
+        xEventGroupSetBits(xSystemEvent, SEND_DATA);
+        break;
+
+    case EVT_SEND_DONE:
+        ESP_LOGI(TAG_SYS, "SEND_DATA -> END_TEST");
+        xEventGroupClearBits(xSystemEvent, SEND_DATA);
+        xEventGroupSetBits(xSystemEvent, END_TEST);
+        ESP_LOGI(TAG_SYS, "Test complete.");
+        break;
+    }
+}
+
 void app_main(void) {
     ESP_LOGI(TAG_MAIN, "Starting main application");
 
@@ -81,6 +130,9 @@ void app_main(void) {
     setup_peripherals();
     vTaskDelay(pdMS_TO_TICKS(150)); // Wait for peripherals to stabilize
 
+    /* Create Queue */
+    xEventQueue = xQueueCreate(10, sizeof(sys_event_t));
+
     /* Create Mutexes */
     // xDATAMutex = xSemaphoreCreateMutex();
 
@@ -104,9 +156,11 @@ void app_main(void) {
 
     /* Create Tasks */
     // Verificar parametros de criação das task
+    // task log ?
+    xTaskCreatePinnedToCore(task_state, "SYS", configMINIMAL_STACK_SIZE * 8, NULL, 10, NULL, 0);
     xTaskCreatePinnedToCore(task_ads, "ADS", configMINIMAL_STACK_SIZE * 8, NULL, 10, &xTaskAds, 1);
     xTaskCreatePinnedToCore(task_max, "MAX", configMINIMAL_STACK_SIZE * 8, NULL, 3, NULL, 0);
-    // task sd
+    xTaskCreatePinnedToCore(task_sd, "SD", configMINIMAL_STACK_SIZE * 8, NULL, 3, NULL, 1);
     // task littlefs
     xTaskCreatePinnedToCore(task_lora, "LoRa", configMINIMAL_STACK_SIZE * 8, NULL, 3, NULL, 1);
 

@@ -9,6 +9,9 @@ sys_data_t  sys_data_g = {0};
 // SemaphoreHandle_t xDATAMutex = NULL;
 portMUX_TYPE xDATASpinlock = portMUX_INITIALIZER_UNLOCKED;
 
+// QUEUE HANDLE
+QueueHandle_t xEventQueue = NULL;
+
 // EVENT HANDLE
 EventGroupHandle_t xNVSCounterEvent = NULL;
 EventGroupHandle_t xFormatEvent     = NULL;

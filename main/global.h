@@ -7,10 +7,14 @@ extern ads_data_t *ads_data_g;
 extern max_data_t *max_data_g;
 extern sys_data_t  sys_data_g;
 
-// MUTEXES
+/* MUTEX */
 // extern SemaphoreHandle_t xDATAMutex;
 extern portMUX_TYPE xDATASpinlock;
 
+/* QUEUE */
+extern QueueHandle_t xEventQueue;
+
+/* EVENT HANDLE*/
 // Event group for NVS counter synchronization
 extern EventGroupHandle_t xNVSCounterEvent;
 // Event group for LittleFS and SD format synchronization

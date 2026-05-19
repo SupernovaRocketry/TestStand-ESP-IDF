@@ -100,3 +100,20 @@ typedef struct __attribute__((packed)) {
     volatile uint32_t max_sample; // 4 Bytes
     volatile uint16_t status;     // 2 Bytes
 } sys_data_t;                     // 10 Bytes
+
+typedef struct __attribute__((packed)) {
+    uint32_t name_check;  // 4 Bytes
+    uint32_t ads_samples; // 4 Bytes
+    uint32_t max_samples; // 4 Bytes
+    uint32_t timestamp;   // 4 Byte
+} file_header_t;          // 16 bytes
+
+typedef enum {
+    EVT_ARM,       // system armed
+    EVT_IGNITION,  // ignition started
+    EVT_ADS_DONE,  // task_ads finished full acquisition
+    EVT_MAX_DONE,  // task_max finished
+    EVT_SAVE_DONE, // task_sd finished writing
+    EVT_SEND_DONE, // task_lora finished sending
+    EVT_ERROR,     // any task encountered a fatal error
+} sys_event_t;

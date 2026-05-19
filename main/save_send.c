@@ -1,13 +1,13 @@
 #include "global.h"
 
 // SD & LITTLEFS CONFIG
-#define SD_BUFFER_SIZE       4096
-#define MAX_SD_FILES         5
-#define SD_UNIT_SIZE         32 * 1024
-#define SD_MOUNT             "/sdcard"
-#define LITTLEFS_BUFFER_SIZE 512
-#define MAX_LFS_FILES        32
-#define FILENAME_LENGTH      32
+#define SD_MAX_FILES    5
+#define SD_MOUNT        "/sdcard"
+#define SD_BUFFER_SIZE  32 * 1024
+#define SD_UNIT_SIZE    32 * 1024
+#define LFS_MAX_FILES   32
+#define LFS_BUFFER_SIZE 512
+#define FILENAME_LENGTH 32
 
 // LORA CONFIG
 #define LORA_FREQUENCY        915000000 // Hz
@@ -22,6 +22,7 @@ static const char *TAG_LORA     = "LoRa";
 void task_sd(void *pvParameters) {
     esp_err_t     ret;
     sdmmc_card_t *card;
+    uint8_t      *dma_buf = NULL;
 
     ESP_LOGI(TAG_SD, "Initializing SD card");
 
@@ -45,7 +46,7 @@ void task_sd(void *pvParameters) {
     /* Options for mounting file system */
     esp_vfs_fat_sdmmc_mount_config_t mount_cfg = {
         .format_if_mount_failed = false,
-        .max_files              = MAX_SD_FILES,
+        .max_files              = SD_MAX_FILES,
         .allocation_unit_size   = SD_UNIT_SIZE,
     };
 
@@ -61,30 +62,101 @@ void task_sd(void *pvParameters) {
         return;
     }
     ESP_LOGI(TAG_SD, "Filesystem mounted");
-
-    // TODO:
-    //      Format mode
-    //      add format mode
-    // ...
-
     sdmmc_card_print_info(stdout, card);
 
+    /* Allocate DMA-capable internal buffer */
+    dma_buf = heap_caps_malloc(SD_BUFFER_SIZE, MALLOC_CAP_DMA | MALLOC_CAP_INTERNAL);
+    if (dma_buf == NULL) {
+        ESP_LOGE(TAG_SD, "Failed to allocate DMA buffer");
+        goto unmount;
+    }
+
+    /* Wait for SAVE_DATA */
     xEventGroupWaitBits(xSystemEvent, SAVE_DATA, pdFALSE, pdTRUE, portMAX_DELAY);
+
+    uint32_t ads_total = sys_data_g.ads_sample;
+    uint32_t max_total = sys_data_g.max_sample;
+    ESP_LOGI(TAG_SD, "Saving %lu ADS samples, %lu MAX samples", ads_total, max_total);
 
     /* Create log file */
     // ADICIONAR NVS COUNTER
     char log_name[FILENAME_LENGTH];
     snprintf(log_name, FILENAME_LENGTH, "%s/test%ld.bin", SD_MOUNT, 12345);
-    ESP_LOGI(TAG_SD, "Creating file %s", log_name);
 
     FILE *f = fopen(log_name, "wb");
     if (!f) {
         ESP_LOGE(TAG_SD, "Failed to open file for writing");
-        esp_vfs_fat_sdcard_unmount(SD_MOUNT, card);
-        ESP_LOGI(TAG_SD, "Card unmounted");
-        vTaskDelete(NULL);
+        goto cleanup;
     }
-    // ...
+
+    /* Write header */
+    file_header_t hdr = {
+        .name_check  = 0xABCD1234,
+        .ads_samples = ads_total,
+        .max_samples = max_total,
+        .timestamp   = (uint32_t)esp_timer_get_time(),
+    };
+
+    if (fwrite(&hdr, sizeof(file_header_t), 1, f) != 1) {
+        ESP_LOGE(TAG_SD, "Failed to write header");
+        goto close;
+    }
+
+    /* Write ADS data */
+    {
+        const size_t   sample_size = sizeof(ads_data_t);
+        const uint32_t chunk       = SD_BUFFER_SIZE / sample_size;
+        uint32_t       written     = 0;
+
+        while (written < ads_total) {
+            uint32_t batch = ((ads_total - written) < chunk ? (ads_total - written) : chunk); // sets chunk size
+            size_t   bytes = batch * sample_size;
+
+            memcpy(dma_buf, &ads_data_g[written], bytes);
+
+            if (fwrite(dma_buf, sample_size, batch, f) != batch) {
+                ESP_LOGE(TAG_SD, "ADS write error at sample %lu", written);
+                goto close;
+            }
+            written += batch;
+        }
+        ESP_LOGI(TAG_SD, "ADS: %lu samples written (%lu bytes)", written, written * sample_size);
+    }
+
+    /* Write MAX data */
+    {
+        const size_t   sample_size = sizeof(max_data_t);
+        const uint32_t chunk       = SD_BUFFER_SIZE / sample_size;
+        uint32_t       written     = 0;
+
+        while (written < max_total) {
+            uint32_t batch = ((max_total - written) < chunk ? (max_total - written) : chunk); // sets chunk size
+            size_t   bytes = batch * sample_size;
+
+            memcpy(dma_buf, &max_data_g[written], bytes);
+
+            if (fwrite(dma_buf, sample_size, batch, f) != batch) {
+                ESP_LOGE(TAG_SD, "MAX write error at sample %lu", written);
+                goto close;
+            }
+            written += batch;
+        }
+        ESP_LOGI(TAG_SD, "MAX: %lu samples written (%lu bytes)", written, written * sample_size);
+    }
+
+    ESP_LOGI(TAG_SD, "SAVE_DATA complete");
+
+close:
+    fclose(f);
+
+cleanup:
+    free(dma_buf);
+
+unmount:
+    esp_vfs_fat_sdcard_unmount(SD_MOUNT, card);
+    ESP_LOGI(TAG_SD, "Card unmounted");
+    xEventGroupSetBits(xSystemEvent, SEND_DATA);
+    vTaskDelete(NULL);
 }
 
 static void lora_init(sx126x_handle_t *lora_handle) {
@@ -147,6 +219,10 @@ void task_lora(void *pvParameters) {
 
     lost = GetPacketLost(lora_handle);
     ESP_LOGI(TAG_LORA, "Samples lost: %u", lost);
+
+    ESP_LOGI(TAG_LORA, "SEND_DATA complete");
+
+    xEventGroupSetBits(xSystemEvent, END_TEST);
 
     vTaskDelete(NULL);
 }
