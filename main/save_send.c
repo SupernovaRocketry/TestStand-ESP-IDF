@@ -14,6 +14,7 @@
 #define LORA_SPREADING_FACTOR 5
 #define LORA_BANDWIDTH        SX126X_LORA_BW_125_0
 #define LORA_CODING_RATE      SX126X_LORA_CR_4_5
+#define LORA_DIO1_TIMEOUT_MS  1000
 
 static const char *TAG_SD       = "SD";
 static const char *TAG_LITTLEFS = "LittleFS";
@@ -201,10 +202,9 @@ static void lora_init(sx126x_handle_t *lora_handle) {
 }
 
 void task_lora(void *pvParameters) {
-    sx126x_handle_t  lora_handle;
-    bool             err;
-    uint16_t         lost;
-    const TickType_t tx_wait_ticks = pdMS_TO_TICKS(2000);
+    sx126x_handle_t lora_handle;
+    bool            err;
+    uint16_t        lost;
 
     lora_init(&lora_handle);
 
@@ -227,7 +227,7 @@ void task_lora(void *pvParameters) {
             ESP_LOGI(TAG_LORA, "Sample %lu lost.", i);
             continue;
         }
-        if (ulTaskNotifyTake(pdTRUE, tx_wait_ticks) == 0) {
+        if (ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(LORA_DIO1_TIMEOUT_MS)) == 0) {
             ESP_LOGW(TAG_LORA, "TX notify timeout at sample %lu", i);
         }
         uint16_t irq = GetIrqStatus(lora_handle);
@@ -246,7 +246,7 @@ void task_lora(void *pvParameters) {
             ESP_LOGI(TAG_LORA, "Sample %lu lost.", i);
             continue;
         }
-        if (ulTaskNotifyTake(pdTRUE, tx_wait_ticks) == 0) {
+        if (ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(LORA_DIO1_TIMEOUT_MS)) == 0) {
             ESP_LOGW(TAG_LORA, "TX notify timeout at sample %lu", i);
         }
         uint16_t irq = GetIrqStatus(lora_handle);

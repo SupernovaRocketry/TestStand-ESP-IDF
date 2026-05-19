@@ -1,6 +1,7 @@
 #include "global.h"
 
 #define FULL_ACQ_DURATION_MS 7000
+#define ADS_DRDY_TIMEOUT_MS  10
 
 static const char *TAG_ADS = "ADS";
 
@@ -91,7 +92,7 @@ void task_ads(void *pvParameters) {
         ads1256_start_conversion(transducer_handle);
 
         /* Wait DRDY */
-        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(ADS_DRDY_TIMEOUT_MS));
 
         /* Load Cell + Pressure Transducer reading */
         ads1256_read_result(loadcell_handle, &current_loadcell);

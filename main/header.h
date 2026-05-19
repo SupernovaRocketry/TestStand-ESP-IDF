@@ -68,9 +68,6 @@
 #define MAX_SAMPLES 700
 #define ADS_SAMPLES 7000
 
-// ADS1256 CONFIG
-#define ADS_DRDY_TIMEOUT_MS 1000
-
 // STATUS FLAGS
 #define IDLE      (1 << 0)
 #define ARMED     (1 << 1)
